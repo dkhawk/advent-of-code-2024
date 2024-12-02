@@ -30,10 +30,10 @@ fun main() {
 }
 
 fun parseInput(input: List<String>): List<Pair<Int, Int>> {
-    val regex = Regex("\\s+") // Split on whitespace characters
     return input.map { line ->
-        line.split(regex).map { it.trim().toInt() }
+        line.split("""\s+""".toRegex()).map { it.trim().toInt() }
     }.map { l ->
+        require(l.size == 2)
         l.first() to l.last()
     }
 }
@@ -45,6 +45,6 @@ fun part1(input: List<Pair<Int, Int>>): Int {
 
 fun part2(input: List<Pair<Int, Int>>): Int {
     val (left, right) = input.unzip()
-    val similarityMap = right.groupBy { it }.map { (key, value) -> key to value.size * key }.toMap().withDefault { 0 }
+    val similarityMap = right.groupingBy { it }.eachCount().map { (k, v) -> k to k * v }.toMap().withDefault { 0 }
     return left.sumOf { similarityMap.getValue(it) }
 }
