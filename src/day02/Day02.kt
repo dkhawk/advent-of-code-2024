@@ -4,6 +4,7 @@ import println
 import readLines
 import kotlin.math.absoluteValue
 import kotlin.math.sign
+import kotlin.time.measureTime
 
 val testInput = """
     7 6 4 2 1
@@ -16,6 +17,7 @@ val testInput = """
 fun main() {
     val testInput = parseInput(testInput)
 
+
     // Test if implementation meets criteria from the description, like:
     check(part1(testInput) == 2)
     check(part2(testInput) == 4)
@@ -25,6 +27,19 @@ fun main() {
 
     // Read the input from the `src/Day01.txt` file.
     val input = parseInput(readLines("inputs/02"))
+//
+//    measureTime {
+//        repeat(10000) {
+//            input.count(::isAnyReportSafeDequeues)
+//        }
+//    }.println()
+//
+//    measureTime {
+//        repeat(10000) {
+//            input.count(::isAnyReportSafeSequences)
+//        }
+//    }.println()
+
     part1(input).println()
     part2(input).println()
 }
@@ -40,7 +55,8 @@ fun part1(input: List<List<Int>>): Int {
 }
 
 fun part2(input: List<List<Int>>): Int {
-    return input.count(::isAnyReportSafe)
+//    return input.count(::isAnyReportSafeDequeues)
+    return input.count(::isAnyReportSafeSequences)
 }
 
 fun isReportSafe(report: Collection<Int>) = isReportSafe(report.asSequence())
@@ -67,7 +83,7 @@ fun isReportSafe(report: Sequence<Int>): Boolean {
     }
 }
 
-fun isAnyReportSafe(report: List<Int>): Boolean {
+fun isAnyReportSafeSequences(report: List<Int>): Boolean {
     if (isReportSafe(report)) return true
 
     // Creates a sequence of sequences of Ints where each nested sequence drops a single value from the report
@@ -87,3 +103,34 @@ fun isAnyReportSafe(report: List<Int>): Boolean {
         }
     }.any(::isReportSafe)
 }
+
+fun isAnyReportSafeDequeues(report: List<Int>): Boolean {
+    val pre = ArrayDeque<Int>()
+    val post = ArrayDeque(report)
+
+    if (isSafe(pre, post)) {
+        return true
+    }
+
+    var itemUnderTest: Int
+
+    while (post.isNotEmpty()) {
+        itemUnderTest = post.removeFirst()
+        if (isSafe(pre, post)) {
+            return true
+        }
+        pre.add(itemUnderTest)
+    }
+
+    return false
+}
+
+private fun isSafe(
+    pre: ArrayDeque<Int>,
+    post: ArrayDeque<Int>
+) = isReportSafe(
+    sequence {
+        pre.forEach { yield(it) }
+        post.forEach { yield(it) }
+    }
+)
