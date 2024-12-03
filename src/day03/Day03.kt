@@ -7,6 +7,7 @@ val testInput = """xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8
 val test2     = """xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"""
 
 val regex = """mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)""".toRegex()
+val regexImproved = """(?<mult>mul\((?<first>[0-9]{1,3}),(?<second>[0-9]{1,3})\))|(?<do>do\(\))|(?<donot>don't\(\))""".toRegex()
 
 fun main() {
     // Test if implementation meets criteria from the description, like:
@@ -25,31 +26,28 @@ fun parseInput(input: String): String {
 }
 
 fun part1(input: String): Int {
-    return regex.findAll(input).map { g ->
-        if (g.value.contains("mul")) {
-            multiply2(g)
-        } else 0
-    }.sum()
+    return regexImproved.findAll(input).fold(State()) { state, match ->
+        getProduct(match)?.let {
+            state.copy(sum = state.sum + it)
+        } ?: state
+    }.sum
+}
+
+private fun getProduct(match: MatchResult): Int? {
+    return match.groups["second"]?.value?.toInt()?.let { second ->
+        match.groups["first"]?.value?.toInt()?.times(second)
+    }
 }
 
 data class State(val sum: Int = 0, val enabled: Boolean = true)
 
 fun part2(input: String): Int {
-    return regex.findAll(input).fold(State()) { state, g ->
-        when (g.value) {
-            "don't()" -> {
-                state.copy(enabled = false)
-            }
-            "do()" -> {
-                state.copy(enabled = true)
-            }
-            else -> {
-                if (state.enabled) {
-                    state.copy(sum = state.sum + multiply2(g))
-                } else {
-                    state
-                }
-            }
+    return regexImproved.findAll(input).fold(State()) { state, match ->
+        when {
+            match.groups["mult"] != null && state.enabled -> getProduct(match)?.let { state.copy(sum = state.sum + it) } ?: state
+            match.groups["do"] != null -> state.copy(enabled = true)
+            match.groups["donot"] != null -> state.copy(enabled = false)
+            else -> state
         }
     }.sum
 }
