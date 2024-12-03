@@ -32,28 +32,26 @@ fun part1(input: String): Int {
     }.sum()
 }
 
-fun part2(input: String): Int {
-    var doState = true
+data class State(val sum: Int = 0, val enabled: Boolean = true)
 
-    return regex.findAll(input).map { g ->
+fun part2(input: String): Int {
+    return regex.findAll(input).fold(State()) { state, g ->
         when (g.value) {
             "don't()" -> {
-                doState = false
-                0
+                state.copy(enabled = false)
             }
             "do()" -> {
-                doState = true
-                0
+                state.copy(enabled = true)
             }
             else -> {
-                if (doState) {
-                    multiply2(g)
+                if (state.enabled) {
+                    state.copy(sum = state.sum + multiply2(g))
                 } else {
-                    0
+                    state
                 }
             }
         }
-    }.sum()
+    }.sum
 }
 
 private fun multiply(g: MatchResult): Int {
