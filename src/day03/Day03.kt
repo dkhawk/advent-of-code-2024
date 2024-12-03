@@ -54,16 +54,17 @@ fun part2(input: String): Int {
     }.sum
 }
 
-private fun multiply(g: MatchResult): Int {
-    val (a, b) = g.value.split(",")
-    val c = a.substringAfter("(").toInt()
-    val d = b.substringBefore(")").toInt()
-    return c * d
-}
-
 // Improved multiply function that uses the better regex to get the factors
 private fun multiply2(g: MatchResult): Int {
     return g.groupValues.drop(1).fold(1) { product, factor ->
         product * factor.toInt()
     }
+}
+
+// First version that was "good enough"
+private fun multiply(g: MatchResult): Int {
+    val (a, b) = g.value.split(",")
+    val c = a.substringAfter("(").toInt()
+    val d = b.substringBefore(")").toInt()
+    return c * d
 }
