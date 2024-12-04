@@ -1,7 +1,11 @@
 package day04
 
+import Vector
+import mapToLocations
+import plus
 import println
 import readText
+import times
 
 val input = """
     MMMSXXMASM
@@ -28,19 +32,6 @@ fun main() {
     part2(input).println()
 }
 
-data class Vector(val x: Int, val y: Int)
-
-enum class Direction(val vector: Vector) {
-    NORTH(Vector(0, -1)),
-    SOUTH(Vector(0, 1)),
-    EAST(Vector(1, 0)),
-    WEST(Vector(-1, 0)),
-    NORTHEAST(Vector(1, -1)),
-    SOUTHEAST(Vector(1, 1)),
-    SOUTHWEST(Vector(-1, 1)),
-    NORTHWEST(Vector(-1, -1)),
-}
-
 fun part1(input: List<String>): Int {
     val data = mapToLocations(input)
 
@@ -55,21 +46,6 @@ fun part1(input: List<String>): Int {
     }
 }
 
-fun findXmas(grid: Map<Vector, Char>, location: Vector, direction: Vector): Boolean {
-    return (grid[location] == 'X') &&
-        (grid[location + direction] == 'M') &&
-        (grid[location + (direction * 2)] == 'A') &&
-        (grid[(location + (direction * 3))] == 'S')
-}
-
-private operator fun Vector.plus(other: Vector): Vector {
-    return Vector(x + other.x, y + other.y)
-}
-
-private operator fun Vector.times(scalar: Int): Vector {
-    return Vector(x * scalar, y * scalar)
-}
-
 fun part2(input: List<String>): Int {
     val data = mapToLocations(input)
 
@@ -82,12 +58,11 @@ fun part2(input: List<String>): Int {
     }
 }
 
-private fun mapToLocations(input: List<String>): List<Pair<Vector, Char>> {
-    return input.mapIndexed { y, line ->
-        line.mapIndexed { x, c ->
-            Vector(x, y) to c
-        }
-    }.flatten()
+fun findXmas(grid: Map<Vector, Char>, location: Vector, direction: Vector): Boolean {
+    return (grid[location] == 'X') &&
+        (grid[location + direction] == 'M') &&
+        (grid[location + (direction * 2)] == 'A') &&
+        (grid[(location + (direction * 3))] == 'S')
 }
 
 fun findCrossmas(grid: Map<Vector, Char>, location: Vector): Int {
@@ -103,7 +78,7 @@ fun findCrossmas(grid: Map<Vector, Char>, location: Vector): Int {
     val d = if (grid[location + Direction.NORTHEAST.vector] == 'S'
         && grid[location + Direction.SOUTHWEST.vector] == 'M') 1 else 0
 
-    // Logically on one of a or b (and c or d) can be true (1)
+    // Logically only one of a or b (and c or d) can be true (1)
     // this is essentially (a || b) && (c || d)
     return (a + b) * (c + d)
 }
