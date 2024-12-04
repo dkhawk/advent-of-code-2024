@@ -1,6 +1,7 @@
 package day04
 
 import Vector
+import allHeadings
 import mapToLocations
 import plus
 import println
@@ -33,50 +34,42 @@ fun main() {
 }
 
 fun part1(input: List<String>): Int {
-    val data = mapToLocations(input)
-
-    val grid = data.toMap().withDefault { '.' }
-
-    val letterXs = data.filter { it.second == 'X' }.map { it.first }
-
-    return letterXs.sumOf { location ->
-        Direction.entries.toTypedArray().count { direction ->
-            findXmas(grid, location, direction.vector)
+    return mapToLocations(input).toMap().withDefault { '.' }.let { grid ->
+        grid.entries.filter { it.value == 'X' }.sumOf { (location, _) ->
+            allHeadings().count { heading ->
+                findXmas(grid, location, heading)
+            }
         }
     }
 }
 
 fun part2(input: List<String>): Int {
-    val data = mapToLocations(input)
-
-    val grid = data.toMap().withDefault { '.' }
-
-    val letterAs = data.filter { it.second == 'A' }.map { it.first }
-
-    return letterAs.sumOf { location ->
-        findCrossmas(grid, location)
+    return mapToLocations(input).toMap().withDefault { '.' }.let { grid ->
+        grid.entries.filter { it.value == 'A' }.sumOf { (location, _) ->
+            findCrossmas(grid, location)
+        }
     }
 }
 
-fun findXmas(grid: Map<Vector, Char>, location: Vector, direction: Vector): Boolean {
+fun findXmas(grid: Map<Vector, Char>, location: Vector, heading: Vector): Boolean {
     return (grid[location] == 'X') &&
-        (grid[location + direction] == 'M') &&
-        (grid[location + (direction * 2)] == 'A') &&
-        (grid[(location + (direction * 3))] == 'S')
+        (grid[location + heading] == 'M') &&
+        (grid[location + (heading * 2)] == 'A') &&
+        (grid[location + (heading * 3)] == 'S')
 }
 
 fun findCrossmas(grid: Map<Vector, Char>, location: Vector): Int {
-    val a = if (grid[location + Direction.NORTHWEST.vector] == 'M'
-        && grid[location + Direction.SOUTHEAST.vector] == 'S') 1 else 0
+    val a = if (grid[location + Heading.NORTHWEST.vector] == 'M'
+        && grid[location + Heading.SOUTHEAST.vector] == 'S') 1 else 0
 
-    val b = if (grid[location + Direction.NORTHWEST.vector] == 'S'
-        && grid[location + Direction.SOUTHEAST.vector] == 'M') 1 else 0
+    val b = if (grid[location + Heading.NORTHWEST.vector] == 'S'
+        && grid[location + Heading.SOUTHEAST.vector] == 'M') 1 else 0
 
-    val c = if (grid[location + Direction.NORTHEAST.vector] == 'M'
-        && grid[location + Direction.SOUTHWEST.vector] == 'S') 1 else 0
+    val c = if (grid[location + Heading.NORTHEAST.vector] == 'M'
+        && grid[location + Heading.SOUTHWEST.vector] == 'S') 1 else 0
 
-    val d = if (grid[location + Direction.NORTHEAST.vector] == 'S'
-        && grid[location + Direction.SOUTHWEST.vector] == 'M') 1 else 0
+    val d = if (grid[location + Heading.NORTHEAST.vector] == 'S'
+        && grid[location + Heading.SOUTHWEST.vector] == 'M') 1 else 0
 
     // Logically only one of a or b (and c or d) can be true (1)
     // this is essentially (a || b) && (c || d)

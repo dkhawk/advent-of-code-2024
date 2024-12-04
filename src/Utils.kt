@@ -24,15 +24,14 @@ fun Any?.println() = println(this)
 
 data class Vector(val x: Int, val y: Int)
 
-enum class Direction(val vector: Vector) {
-    NORTH(Vector(0, -1)),
-    SOUTH(Vector(0, 1)),
-    EAST(Vector(1, 0)),
-    WEST(Vector(-1, 0)),
-    NORTHEAST(Vector(1, -1)),
-    SOUTHEAST(Vector(1, 1)),
-    SOUTHWEST(Vector(-1, 1)),
-    NORTHWEST(Vector(-1, -1)),
+enum class Heading(val vector: Vector) {
+    NORTHWEST(Vector(-1, -1)), NORTH(Vector(0, -1)), NORTHEAST(Vector(1, -1)),
+         WEST(Vector(-1,  0)),                                  EAST(Vector(1,  0)),
+    SOUTHWEST(Vector(-1,  1)), SOUTH(Vector(0,  1)), SOUTHEAST(Vector(1,  1)),
+}
+
+fun allHeadings(): List<Vector> {
+    return Heading.entries.map { heading -> heading.vector }
 }
 
 operator fun Vector.plus(other: Vector): Vector {
