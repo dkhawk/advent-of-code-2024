@@ -86,9 +86,11 @@ fun part1(input: List<String>): Int {
     }
 }
 
+
 fun createKernels2(): List<List<Pair<Vector, Char>>> {
-    val k2 = (-1..1).map{ Vector(it, -it) }.zip("MAS".toList())
-    val k = (-1..1).map{ Vector(it, it) }.zip("MAS".toList()) + k2
+    val k = (-1..1).map{ Vector(it, it) }.zip("MAS".toList()).let {
+        it + it.mirrorHorizontally()
+    }
 
     val kernels = generateSequence(k) {
         it.rotate()
@@ -100,6 +102,18 @@ fun createKernels2(): List<List<Pair<Vector, Char>>> {
 //    }
 
     return kernels
+}
+
+private fun <T> List<Pair<Vector, T>>.pivot(): List<Pair<Vector, T>> {
+    return this.map { (location, t) ->
+        Vector(location.y, location.x) to t
+    }
+}
+
+private fun <T> List<Pair<Vector, T>>.mirrorHorizontally(): List<Pair<Vector, T>> {
+    return this.map { (location, t) ->
+        Vector(-location.x, location.y) to t
+    }
 }
 
 private fun <T> List<Pair<Vector, T>>.rotate(): List<Pair<Vector, T>> {
