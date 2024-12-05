@@ -50,53 +50,34 @@ fun part1(input: List<String>): Int {
     val rules = parseRules(input)
     val updates = parseUpdates(input)
 
-    return updates.sumOf { update -> validateRule(update, rules) }
+    return updates.sumOf { update -> validateUpdate(update, rules) }
 }
 
 fun part2(input: List<String>): Int {
     val rules = parseRules(input)
     val updates = parseUpdates(input)
 
-    // Get the list of invalid updates
-    val invalidUpdate = updates.filter { update -> validateRule(update, rules) == 0 }
-
-    return invalidUpdate.sumOf { update -> fixRule(update, rules) }
+    return updates.filter { update -> validateUpdate(update, rules) == 0 }
+        .sumOf { update -> fixRule(update, rules) }
 }
 
-fun validateRule(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
+fun validateUpdate(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
     val printed = mutableListOf<Int>()
 
-    val blockedBy = mutableMapOf<Int, MutableSet<Int>>()
-    val iAmBlocking = mutableMapOf<Int, MutableSet<Int>>()
-    rules.forEach { (first, second) ->
-        if (update.contains(first)) {
-            blockedBy.getOrPut(second) { mutableSetOf() }.add(first)
-        }
-        iAmBlocking.getOrPut(first) { mutableSetOf() }.add(second)
-    }
+    val (blockedBy, iAmBlocking) = createBlockingMaps(rules, update)
 
     val iterator = update.iterator()
 
     while (iterator.hasNext()) {
         val next = iterator.next()
         if (blockedBy.containsKey(next)) {
+            // The update is invalid
             return 0
         }
 
         printed.add(next)
 
-        iAmBlocking[next]?.let { pagesIamBlocking ->
-            pagesIamBlocking.forEach { blockedPage ->
-                if (blockedBy.containsKey(blockedPage)) {
-                    blockedBy[blockedPage]?.let {
-                        it.remove(next)
-                        if (it.isEmpty()) {
-                            blockedBy.remove(blockedPage)
-                        }
-                    }
-                }
-            }
-        }
+        updateBlockingMaps(iAmBlocking, next, blockedBy)
     }
 
     return printed.middle()
@@ -106,6 +87,49 @@ fun fixRule(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
     val printed = mutableListOf<Int>()
     val unprinted = update.toMutableList()
 
+    val (blockedBy, iAmBlocking) = createBlockingMaps(rules, update)
+
+    val unprintedSet = unprinted.toMutableSet()
+
+    while (unprintedSet.isNotEmpty()) {
+        val blockedPages = blockedBy.keys
+        val unblockedPages = unprintedSet - blockedPages
+
+        // Verify the assumption that there is only one valid option
+        require(unblockedPages.size == 1)
+
+        val page = unblockedPages.first()
+        printed.add(page)
+        unprintedSet.remove(page)
+        updateBlockingMaps(iAmBlocking, page, blockedBy)
+    }
+
+    return printed.middle()
+}
+
+private fun updateBlockingMaps(
+    iAmBlocking: MutableMap<Int, MutableSet<Int>>,
+    next: Int,
+    blockedBy: MutableMap<Int, MutableSet<Int>>
+) {
+    iAmBlocking[next]?.let { pagesIamBlocking ->
+        pagesIamBlocking.forEach { blockedPage ->
+            if (blockedBy.containsKey(blockedPage)) {
+                blockedBy[blockedPage]?.let {
+                    it.remove(next)
+                    if (it.isEmpty()) {
+                        blockedBy.remove(blockedPage)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun createBlockingMaps(
+    rules: List<Pair<Int, Int>>,
+    update: List<Int>
+): Pair<MutableMap<Int, MutableSet<Int>>, MutableMap<Int, MutableSet<Int>>> {
     val blockedBy = mutableMapOf<Int, MutableSet<Int>>()
     val iAmBlocking = mutableMapOf<Int, MutableSet<Int>>()
     rules.forEach { (first, second) ->
@@ -114,35 +138,7 @@ fun fixRule(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
         }
         iAmBlocking.getOrPut(first) { mutableSetOf() }.add(second)
     }
-
-    val unprintedSet = unprinted.toMutableSet()
-
-    while (unprintedSet.isNotEmpty()) {
-        val blockedPages = blockedBy.keys
-        val unblockedPages = unprintedSet - blockedPages
-
-        require(unblockedPages.size == 1)
-
-        val page = unblockedPages.first()
-        printed.add(page)
-
-        unprintedSet.remove(page)
-
-        iAmBlocking[page]?.let { pagesIamBlocking ->
-            pagesIamBlocking.forEach { blockedPage ->
-                if (blockedBy.containsKey(blockedPage)) {
-                    blockedBy[blockedPage]?.let {
-                        it.remove(page)
-                        if (it.isEmpty()) {
-                            blockedBy.remove(blockedPage)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return printed.middle()
+    return Pair(blockedBy, iAmBlocking)
 }
 
 fun <E> List<E>.middle(): E {
