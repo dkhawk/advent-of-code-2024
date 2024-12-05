@@ -34,6 +34,8 @@ val input = """
     97,13,75,29,47
 """.trimIndent().lines()
 
+typealias RuleSet = List<Pair<Int, Int>>
+
 fun main() {
     // Test if implementation meets criteria from the description, like:
     check(part1(input) == 143)
@@ -58,44 +60,39 @@ fun part2(input: List<String>): Int {
     val updates = parseUpdates(input)
 
     return updates.filter { update -> validateUpdate(update, rules) == 0 }
-        .sumOf { update -> fixRule(update, rules) }
+        .sumOf { update -> fixUpdate(update, rules) }
 }
 
-fun validateUpdate(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
+fun validateUpdate(update: List<Int>, rules: RuleSet): Int {
     val printed = mutableListOf<Int>()
 
     val (blockedBy, iAmBlocking) = createBlockingMaps(rules, update)
 
     val iterator = update.iterator()
-
     while (iterator.hasNext()) {
-        val next = iterator.next()
-        if (blockedBy.containsKey(next)) {
+        val page = iterator.next()
+        if (blockedBy.containsKey(page)) {
             // The update is invalid
             return 0
         }
-
-        printed.add(next)
-
-        updateBlockingMaps(iAmBlocking, next, blockedBy)
+        printed.add(page)
+        updateBlockingMaps(iAmBlocking, page, blockedBy)
     }
 
     return printed.middle()
 }
 
-fun fixRule(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
+fun fixUpdate(update: List<Int>, rules: RuleSet): Int {
     val printed = mutableListOf<Int>()
-    val unprinted = update.toMutableList()
 
     val (blockedBy, iAmBlocking) = createBlockingMaps(rules, update)
 
-    val unprintedSet = unprinted.toMutableSet()
+    val unprintedSet = update.toMutableSet()
 
     while (unprintedSet.isNotEmpty()) {
-        val blockedPages = blockedBy.keys
-        val unblockedPages = unprintedSet - blockedPages
+        val unblockedPages = unprintedSet - blockedBy.keys
 
-        // Verify the assumption that there is only one valid option
+        // Enforce the assumption that there is only one valid option
         require(unblockedPages.size == 1)
 
         val page = unblockedPages.first()
@@ -108,18 +105,18 @@ fun fixRule(update: List<Int>, rules: List<Pair<Int, Int>>): Int {
 }
 
 private fun updateBlockingMaps(
-    iAmBlocking: MutableMap<Int, MutableSet<Int>>,
-    next: Int,
+    iAmBlocking: Map<Int, Set<Int>>,
+    page: Int,
     blockedBy: MutableMap<Int, MutableSet<Int>>
 ) {
-    iAmBlocking[next]?.let { pagesIamBlocking ->
+    iAmBlocking[page]?.let { pagesIamBlocking ->
         pagesIamBlocking.forEach { blockedPage ->
-            if (blockedBy.containsKey(blockedPage)) {
-                blockedBy[blockedPage]?.let {
-                    it.remove(next)
-                    if (it.isEmpty()) {
-                        blockedBy.remove(blockedPage)
-                    }
+            blockedBy[blockedPage]?.let { pagesIamBlockedBy ->
+                // Current page is no longer blocked by "page"
+                pagesIamBlockedBy.remove(page)
+                if (pagesIamBlockedBy.isEmpty()) {
+                    // Current page is no longer blocked at all
+                    blockedBy.remove(blockedPage)
                 }
             }
         }
@@ -127,9 +124,9 @@ private fun updateBlockingMaps(
 }
 
 private fun createBlockingMaps(
-    rules: List<Pair<Int, Int>>,
+    rules: RuleSet,
     update: List<Int>
-): Pair<MutableMap<Int, MutableSet<Int>>, MutableMap<Int, MutableSet<Int>>> {
+): Pair<MutableMap<Int, MutableSet<Int>>, Map<Int, Set<Int>>> {
     val blockedBy = mutableMapOf<Int, MutableSet<Int>>()
     val iAmBlocking = mutableMapOf<Int, MutableSet<Int>>()
     rules.forEach { (first, second) ->
