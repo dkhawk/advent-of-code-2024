@@ -22,7 +22,7 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  */
 fun Any?.println() = println(this)
 
-data class Vector(val x: Int, val y: Int)
+data class Vector(val x: Int = 0, val y: Int = 0)
 
 enum class Heading(val vector: Vector) {
     NORTHWEST(Vector(-1, -1)), NORTH(Vector(0, -1)), NORTHEAST(Vector(1, -1)),
