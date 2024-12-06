@@ -1,12 +1,13 @@
 package day04b
 
 import Vector
-import allHeadings
+import allHeadings8
 import mapToLocations
 import plus
 import println
 import readText
 import kotlin.math.sign
+import kotlin.time.measureTime
 
 val input = """
     MMMSXXMASM
@@ -29,39 +30,17 @@ fun main() {
     // Read the input from the `src/Day01.txt` file.
     val input = readText("inputs/04").lines()
 
-    part1(input).println()
-    part2(input).println()
+    measureTime {
+        part1(input).println()
+        part2(input).println()
+    }.println()
 }
 
-fun Collection<Vector>.minMax(): Pair<Vector, Vector> {
-    val xMinMax = this.map { it.x }.sorted().let { l -> l.first() to l.last() }
-    val yMinMax = this.map { it.y }.sorted().let { l -> l.first() to l.last() }
-
-    return Vector(xMinMax.first, yMinMax.first) to Vector(xMinMax.second, yMinMax.second)
-}
-
-private fun Map<Vector, Char>.printGrid() {
-    val (minLocation, maxLocation) = this.keys.minMax()
-
-    val gw = this.withDefault { '.' }
-
-    (minLocation..maxLocation).map { row ->
-        row.map { gw.getValue(it) }.joinToString("").println()
-    }
-}
-
-private operator fun Vector.rangeTo(other: Vector): List<List<Vector>> {
-    return (this.y..other.y).map { y ->
-        (this.x..other.x).map { x ->
-            Vector(x, y)
-        }
-    }
-}
 
 fun createKernels(): List<List<Pair<Vector, Char>>> {
     val word = "XMAS"
 
-    val kernels = allHeadings().map { heading ->
+    val kernels = allHeadings8().map { heading ->
         val s = generateSequence(Vector()) { it + heading }.iterator()
         word.map { s.next() to it }
     }

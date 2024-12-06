@@ -1,7 +1,7 @@
 package day04
 
 import Vector
-import allHeadings
+import allHeadings8
 import mapToLocations
 import plus
 import println
@@ -36,7 +36,7 @@ fun main() {
 fun part1(input: List<String>): Int {
     return mapToLocations(input).toMap().withDefault { '.' }.let { grid ->
         grid.entries.filter { it.value == 'X' }.sumOf { (location, _) ->
-            allHeadings().count { heading ->
+            allHeadings8().count { heading ->
                 findXmas(grid, location, heading)
             }
         }
@@ -59,17 +59,17 @@ fun findXmas(grid: Map<Vector, Char>, location: Vector, heading: Vector): Boolea
 }
 
 fun findCrossmas(grid: Map<Vector, Char>, location: Vector): Int {
-    val a = if (grid[location + Heading.NORTHWEST.vector] == 'M'
-        && grid[location + Heading.SOUTHEAST.vector] == 'S') 1 else 0
+    val a = if (grid[location + Heading8.NORTHWEST.vector] == 'M'
+        && grid[location + Heading8.SOUTHEAST.vector] == 'S') 1 else 0
 
-    val b = if (grid[location + Heading.NORTHWEST.vector] == 'S'
-        && grid[location + Heading.SOUTHEAST.vector] == 'M') 1 else 0
+    val b = if (grid[location + Heading8.NORTHWEST.vector] == 'S'
+        && grid[location + Heading8.SOUTHEAST.vector] == 'M') 1 else 0
 
-    val c = if (grid[location + Heading.NORTHEAST.vector] == 'M'
-        && grid[location + Heading.SOUTHWEST.vector] == 'S') 1 else 0
+    val c = if (grid[location + Heading8.NORTHEAST.vector] == 'M'
+        && grid[location + Heading8.SOUTHWEST.vector] == 'S') 1 else 0
 
-    val d = if (grid[location + Heading.NORTHEAST.vector] == 'S'
-        && grid[location + Heading.SOUTHWEST.vector] == 'M') 1 else 0
+    val d = if (grid[location + Heading8.NORTHEAST.vector] == 'S'
+        && grid[location + Heading8.SOUTHWEST.vector] == 'M') 1 else 0
 
     // Logically only one of a or b (and c or d) can be true (1)
     // this is essentially (a || b) && (c || d)

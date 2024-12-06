@@ -2,6 +2,7 @@ package day05
 
 import println
 import readText
+import kotlin.time.measureTime
 
 val input = """
     47|53
@@ -44,8 +45,10 @@ fun main() {
     // Read the input from the `src/Day01.txt` file.
     val input = readText("inputs/05").lines()
 
-    part1(input).println()
-    part2(input).println()
+    measureTime {
+        part1(input).println()
+        part2(input).println()
+    }.println()
 }
 
 fun part1(input: List<String>): Int {
