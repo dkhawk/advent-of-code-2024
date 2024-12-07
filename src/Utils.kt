@@ -46,6 +46,15 @@ enum class Heading(val vector: Vector) {
         }
     }
 
+    fun turnLeft(): Heading {
+        return when (this) {
+            NORTH -> WEST
+            EAST -> NORTH
+            SOUTH -> EAST
+            WEST -> SOUTH
+        }
+    }
+
     fun opposite(): Heading {
         return when (this) {
             NORTH -> SOUTH
@@ -133,5 +142,14 @@ operator fun Vector.rangeTo(other: Vector): List<List<Vector>> {
         (this.x..other.x).map { x ->
             Vector(x, y)
         }
+    }
+}
+
+fun Heading.toSymbol(): Char {
+    return when (this) {
+        Heading.NORTH -> '^'
+        Heading.EAST -> '>'
+        Heading.SOUTH -> 'v'
+        Heading.WEST -> '<'
     }
 }
