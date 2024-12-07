@@ -1,7 +1,7 @@
 package day03b
 
-import println
-import readText
+import utils.println
+import utils.readText
 
 data class State(val sum: Int = 0, val enabled: Boolean = true)
 

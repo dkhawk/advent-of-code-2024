@@ -1,11 +1,7 @@
 package day06
 
-import Heading
-import Bounds
-import Vector
-import minMax
-import println
-import readLines
+import utils.minMax
+import utils.println
 import utils.COLORS
 import java.util.*
 import kotlinx.coroutines.*
@@ -23,7 +19,7 @@ val testInput = """
     ......#...""".trimIndent()
 
 fun main() = runBlocking {
-    val input = readLines("inputs/06")
+    val input = _root_ide_package_.utils.readLines("inputs/06")
 
     check(part1(testInput.lines()) == 41)
     part1(input).println()
@@ -37,11 +33,11 @@ fun main() = runBlocking {
     "${COLORS.RED}Reminder: 1502 is too high!${COLORS.NONE}".println()
 }
 
-fun buildGrid(input: List<String>): Map<Vector, Char> {
+fun buildGrid(input: List<String>): Map<_root_ide_package_.utils.Vector, Char> {
     return buildMap {
         input.mapIndexed { y, line ->
             line.mapIndexed { x, c ->
-                if (c != '.') put(Vector(x, y), c)
+                if (c != '.') put(_root_ide_package_.utils.Vector(x, y), c)
             }
         }.flatten()
     }
@@ -55,9 +51,9 @@ fun part1(input: List<String>): Int {
     val bounds = grid.keys.minMax()
 
     var guard = grid.entries.first { (k, v) -> v == '^' }.key
-    var heading = Heading.NORTH
+    var heading = _root_ide_package_.utils.Heading.NORTH
 
-    val visited = mutableSetOf<Vector>()
+    val visited = mutableSetOf<_root_ide_package_.utils.Vector>()
 
     while (bounds.contains(guard)) {
         visited.add(guard)
@@ -75,12 +71,10 @@ fun part1(input: List<String>): Int {
     return visited.size
 }
 
-typealias Straight = HashSet<Vector>
-
 data class CandidateObject(
-    val location: Vector,
-    val guard: Vector,
-    val heading: Heading,
+    val location: _root_ide_package_.utils.Vector,
+    val guard: _root_ide_package_.utils.Vector,
+    val heading: _root_ide_package_.utils.Heading,
 )
 
 suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
@@ -92,9 +86,9 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
 
     var guard = grid.entries.first { (k, v) -> v == '^' }.key
     val start = guard
-    var heading = Heading.NORTH
+    var heading = _root_ide_package_.utils.Heading.NORTH
 
-    val visited = mutableSetOf<Vector>()
+    val visited = mutableSetOf<_root_ide_package_.utils.Vector>()
 
 //    val expectedObstacles = getExpectedObstacles(testData)
 //    expectedObstacles.println()
@@ -132,7 +126,7 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
                 CandidateObject(
                     location = next,
                     guard = start,
-                    heading = Heading.NORTH,
+                    heading = _root_ide_package_.utils.Heading.NORTH,
                 )
             )
             guard = next
@@ -169,14 +163,14 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
     return actual.size
 }
 
-fun checkCandidate(grid: Map<Vector, Char>, bounds: Bounds, candidate: CandidateObject) : Vector? {
+fun checkCandidate(grid: Map<_root_ide_package_.utils.Vector, Char>, bounds: _root_ide_package_.utils.Bounds, candidate: CandidateObject) : _root_ide_package_.utils.Vector? {
     var heading = candidate.heading
     var guard = candidate.guard
 
-    val visited = mutableSetOf<Pair<Vector, Heading>>()
+    val visited = mutableSetOf<Pair<_root_ide_package_.utils.Vector, _root_ide_package_.utils.Heading>>()
     visited.add(guard to heading)
 
-    var result: Vector? = null
+    var result: _root_ide_package_.utils.Vector? = null
 
     while (true) {
         val next = guard.advance(heading)
@@ -210,7 +204,7 @@ fun checkCandidate(grid: Map<Vector, Char>, bounds: Bounds, candidate: Candidate
     return result
 }
 
-fun getExpectedObstacles(testData: String): Set<Vector> {
+fun getExpectedObstacles(testData: String): Set<_root_ide_package_.utils.Vector> {
     return testData.split("\n\n").map { testGrid ->
         buildGrid(testGrid.lines()).entries.first { (k, v) -> v == 'O' }.key
     }.also { it.println() }.toSet()

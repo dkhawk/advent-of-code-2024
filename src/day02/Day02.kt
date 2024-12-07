@@ -1,7 +1,7 @@
 package day02
 
-import println
-import readLines
+import utils.println
+import utils.readLines
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 import kotlin.time.measureTime

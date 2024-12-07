@@ -1,7 +1,7 @@
 package day01
 
-import println
-import readLines
+import utils.println
+import utils.readLines
 import kotlin.math.abs
 
 val testInput = """

@@ -1,7 +1,7 @@
 package day05
 
-import println
-import readText
+import utils.println
+import utils.readText
 import kotlin.time.measureTime
 
 val input = """
@@ -43,7 +43,7 @@ fun main() {
     check(part2(input) == 123)
 
     // Read the input from the `src/Day01.txt` file.
-    val input = readText("inputs/05").lines()
+    val input = _root_ide_package_.utils.readText("inputs/05").lines()
 
     measureTime {
         part1(input).println()
