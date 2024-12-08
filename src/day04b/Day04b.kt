@@ -3,7 +3,6 @@ package day04b
 import utils.Vector
 import utils.allHeadings8
 import utils.mapToLocations
-import utils.plus
 import utils.println
 import utils.readText
 import kotlin.math.sign
@@ -28,7 +27,7 @@ fun main() {
     check(part2(input) == 9)
 
     // Read the input from the `src/Day01.txt` file.
-    val input = _root_ide_package_.utils.readText("inputs/04").lines()
+    val input = readText("inputs/04").lines()
 
     measureTime {
         part1(input).println()
@@ -37,11 +36,11 @@ fun main() {
 }
 
 
-fun createKernels(): List<List<Pair<_root_ide_package_.utils.Vector, Char>>> {
+fun createKernels(): List<List<Pair<Vector, Char>>> {
     val word = "XMAS"
 
-    val kernels = _root_ide_package_.utils.allHeadings8().map { heading ->
-        val s = generateSequence(_root_ide_package_.utils.Vector()) { it + heading }.iterator()
+    val kernels = allHeadings8().map { heading ->
+        val s = generateSequence(Vector()) { it + heading }.iterator()
         word.map { s.next() to it }
     }
 
@@ -56,7 +55,7 @@ fun createKernels(): List<List<Pair<_root_ide_package_.utils.Vector, Char>>> {
 val part1Kernels = createKernels()
 fun part1(input: List<String>): Int {
 
-    return _root_ide_package_.utils.mapToLocations(input).toMap().let { grid ->
+    return mapToLocations(input).toMap().let { grid ->
         grid.entries.filter { it.value == 'X' }.sumOf { (location, _) ->
             part1Kernels.count { kernel ->
                 checkKernelAtLocation(grid, location, kernel)
@@ -66,8 +65,8 @@ fun part1(input: List<String>): Int {
 }
 
 
-fun createKernels2(): List<List<Pair<_root_ide_package_.utils.Vector, Char>>> {
-    val k = (-1..1).map{ _root_ide_package_.utils.Vector(it, it) }.zip("MAS".toList()).let {
+fun createKernels2(): List<List<Pair<Vector, Char>>> {
+    val k = (-1..1).map{ Vector(it, it) }.zip("MAS".toList()).let {
         it + it.mirrorHorizontally()
     }
 
@@ -83,26 +82,26 @@ fun createKernels2(): List<List<Pair<_root_ide_package_.utils.Vector, Char>>> {
     return kernels
 }
 
-private fun <T> List<Pair<_root_ide_package_.utils.Vector, T>>.pivot(): List<Pair<_root_ide_package_.utils.Vector, T>> {
+private fun <T> List<Pair<Vector, T>>.pivot(): List<Pair<Vector, T>> {
     return this.map { (location, t) ->
-        _root_ide_package_.utils.Vector(location.y, location.x) to t
+        Vector(location.y, location.x) to t
     }
 }
 
-private fun <T> List<Pair<_root_ide_package_.utils.Vector, T>>.mirrorHorizontally(): List<Pair<_root_ide_package_.utils.Vector, T>> {
+private fun <T> List<Pair<Vector, T>>.mirrorHorizontally(): List<Pair<Vector, T>> {
     return this.map { (location, t) ->
-        _root_ide_package_.utils.Vector(-location.x, location.y) to t
+        Vector(-location.x, location.y) to t
     }
 }
 
-private fun <T> List<Pair<_root_ide_package_.utils.Vector, T>>.rotate(): List<Pair<_root_ide_package_.utils.Vector, T>> {
+private fun <T> List<Pair<Vector, T>>.rotate(): List<Pair<Vector, T>> {
     return this.map { (location, t) ->
         val (x, y) = location
         val v = when {
-            x.sign == -1 && y.sign == -1 -> _root_ide_package_.utils.Vector(-x, y)
-            x.sign == 1 && y.sign == -1 -> _root_ide_package_.utils.Vector(x, -y)
-            x.sign == 1 && y.sign == 1 -> _root_ide_package_.utils.Vector(-x, y)
-            x.sign == -1 && y.sign == 1 -> _root_ide_package_.utils.Vector(x, -y)
+            x.sign == -1 && y.sign == -1 -> Vector(-x, y)
+            x.sign == 1 && y.sign == -1 -> Vector(x, -y)
+            x.sign == 1 && y.sign == 1 -> Vector(-x, y)
+            x.sign == -1 && y.sign == 1 -> Vector(x, -y)
             else -> location
         }
 
@@ -113,7 +112,7 @@ private fun <T> List<Pair<_root_ide_package_.utils.Vector, T>>.rotate(): List<Pa
 val part2Kernels = createKernels2()
 
 fun part2(input: List<String>): Int {
-    return _root_ide_package_.utils.mapToLocations(input).toMap().let { grid ->
+    return mapToLocations(input).toMap().let { grid ->
         grid.entries.filter { it.value == 'A' }.sumOf { (location, _) ->
             part2Kernels.count { kernel ->
                 checkKernelAtLocation(grid, location, kernel)
@@ -122,7 +121,7 @@ fun part2(input: List<String>): Int {
     }
 }
 
-fun checkKernelAtLocation(grid: Map<_root_ide_package_.utils.Vector, Char>, location: _root_ide_package_.utils.Vector, kernel: List<Pair<_root_ide_package_.utils.Vector, Char>>): Boolean {
+fun checkKernelAtLocation(grid: Map<Vector, Char>, location: Vector, kernel: List<Pair<Vector, Char>>): Boolean {
     return kernel.all { (kernelLocation, expected) ->
         grid[kernelLocation + location] == expected
     }

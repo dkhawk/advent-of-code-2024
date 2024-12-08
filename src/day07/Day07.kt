@@ -1,8 +1,8 @@
 package day07
 
 import utils.println
-import java.util.*
 import kotlinx.coroutines.*
+import kotlin.time.measureTime
 
 val testInput = """
     190: 10 19
@@ -16,13 +16,15 @@ val testInput = """
     292: 11 6 16 20""".trimIndent()
 
 fun main() = runBlocking {
-    val input = _root_ide_package_.utils.readLines("inputs/07")
+    val input = utils.readLines("inputs/07")
 
     check(part1(testInput.lines()) == 3749L)
     part1(input).println()
 
-    check(part2(testInput.lines()) == 11387L)
-    part2(input).println()
+    measureTime {
+        check(part2(testInput.lines()) == 11387L)
+        part2(input).println()
+    }.println()
 }
 
 fun part1(input: List<String>): Long {

@@ -1,10 +1,7 @@
 package day06
 
-import utils.minMax
-import utils.println
-import utils.COLORS
-import java.util.*
 import kotlinx.coroutines.*
+import utils.*
 
 val testInput = """
     ....#.....
@@ -19,7 +16,7 @@ val testInput = """
     ......#...""".trimIndent()
 
 fun main() = runBlocking {
-    val input = _root_ide_package_.utils.readLines("inputs/06")
+    val input = readLines("inputs/06")
 
     check(part1(testInput.lines()) == 41)
     part1(input).println()
@@ -33,16 +30,6 @@ fun main() = runBlocking {
     "${COLORS.RED}Reminder: 1502 is too high!${COLORS.NONE}".println()
 }
 
-fun buildGrid(input: List<String>): Map<_root_ide_package_.utils.Vector, Char> {
-    return buildMap {
-        input.mapIndexed { y, line ->
-            line.mapIndexed { x, c ->
-                if (c != '.') put(_root_ide_package_.utils.Vector(x, y), c)
-            }
-        }.flatten()
-    }
-}
-
 fun part1(input: List<String>): Int {
     val grid = buildGrid(input).apply {
         // printGrid()
@@ -50,10 +37,10 @@ fun part1(input: List<String>): Int {
 
     val bounds = grid.keys.minMax()
 
-    var guard = grid.entries.first { (k, v) -> v == '^' }.key
-    var heading = _root_ide_package_.utils.Heading.NORTH
+    var guard = grid.entries.first { (_, v) -> v == '^' }.key
+    var heading = Heading.NORTH
 
-    val visited = mutableSetOf<_root_ide_package_.utils.Vector>()
+    val visited = mutableSetOf<Vector>()
 
     while (bounds.contains(guard)) {
         visited.add(guard)
@@ -72,9 +59,9 @@ fun part1(input: List<String>): Int {
 }
 
 data class CandidateObject(
-    val location: _root_ide_package_.utils.Vector,
-    val guard: _root_ide_package_.utils.Vector,
-    val heading: _root_ide_package_.utils.Heading,
+    val location: Vector,
+    val guard: Vector,
+    val heading: Heading,
 )
 
 suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
@@ -84,11 +71,11 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
 
     val bounds = grid.keys.minMax()
 
-    var guard = grid.entries.first { (k, v) -> v == '^' }.key
+    var guard = grid.entries.first { (_, v) -> v == '^' }.key
     val start = guard
-    var heading = _root_ide_package_.utils.Heading.NORTH
+    var heading = Heading.NORTH
 
-    val visited = mutableSetOf<_root_ide_package_.utils.Vector>()
+    val visited = mutableSetOf<Vector>()
 
 //    val expectedObstacles = getExpectedObstacles(testData)
 //    expectedObstacles.println()
@@ -126,7 +113,7 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
                 CandidateObject(
                     location = next,
                     guard = start,
-                    heading = _root_ide_package_.utils.Heading.NORTH,
+                    heading = Heading.NORTH,
                 )
             )
             guard = next
@@ -163,14 +150,14 @@ suspend fun part2(input: List<String>, coroutineScope: CoroutineScope): Int {
     return actual.size
 }
 
-fun checkCandidate(grid: Map<_root_ide_package_.utils.Vector, Char>, bounds: _root_ide_package_.utils.Bounds, candidate: CandidateObject) : _root_ide_package_.utils.Vector? {
+fun checkCandidate(grid: Map<Vector, Char>, bounds: Bounds, candidate: CandidateObject) : Vector? {
     var heading = candidate.heading
     var guard = candidate.guard
 
-    val visited = mutableSetOf<Pair<_root_ide_package_.utils.Vector, _root_ide_package_.utils.Heading>>()
+    val visited = mutableSetOf<Pair<Vector, Heading>>()
     visited.add(guard to heading)
 
-    var result: _root_ide_package_.utils.Vector? = null
+    var result: Vector?
 
     while (true) {
         val next = guard.advance(heading)
@@ -204,9 +191,9 @@ fun checkCandidate(grid: Map<_root_ide_package_.utils.Vector, Char>, bounds: _ro
     return result
 }
 
-fun getExpectedObstacles(testData: String): Set<_root_ide_package_.utils.Vector> {
+fun getExpectedObstacles(testData: String): Set<Vector> {
     return testData.split("\n\n").map { testGrid ->
-        buildGrid(testGrid.lines()).entries.first { (k, v) -> v == 'O' }.key
+        buildGrid(testGrid.lines()).entries.first { (_, v) -> v == 'O' }.key
     }.also { it.println() }.toSet()
 }
 
