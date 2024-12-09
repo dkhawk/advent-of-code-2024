@@ -36,14 +36,14 @@ fun part1(input: List<String>): Int {
     return byType.flatMap { (_, v) ->
         // Brute it!
         combinations(v.toList()).flatMap { combo ->
-            antiNodes(combo.first, combo.second).toList()
+            antiNodes(combo.first, combo.second)
         }.filter { bounds.contains(it) }
     }.distinct().size
 }
 
-fun antiNodes(a: Vector, b: Vector): Pair<Vector, Vector> {
+fun antiNodes(a: Vector, b: Vector): List<Vector> {
     val delta = b - a
-    return (a - delta) to (b + delta)
+    return listOf((a - delta), (b + delta))
 }
 
 fun combinations(nodes: List<Vector>): Sequence<Pair<Vector, Vector>> {
