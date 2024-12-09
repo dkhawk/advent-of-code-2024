@@ -15,6 +15,23 @@ val testInput2 = """
     2333133121414131402
 """.trimIndent()
 
+val expected = """
+    00...111...2...333.44.5555.6666.777.888899    
+    00...111...2...333.44.5555.6666.777.888899
+
+    0099.111...2...333.44.5555.6666.777.8888..
+    0099.111...2...333.44.5555.6666.777.8888..
+
+    0099.1117772...333.44.5555.6666.....8888..
+    0099.1117772...333.44.5555.6666.....8888..
+
+    0099.111777244.333....5555.6666.....8888..
+    0099.111777244.333....5555.6666.....8888..
+
+    00992111777.44.333....5555.6666.....8888..
+    00992111777.44.333....5555.6666.....8888..
+""".trimIndent()
+
 fun main() = runBlocking {
 //    check(part1(testInput2) == 1928L)
     check(part2(testInput2) == BigInteger.valueOf( 2858))
@@ -23,6 +40,7 @@ fun main() = runBlocking {
 //    part1(input).println()
     part2(input).println()
     "9628495393 is too low".println()
+    "10783467966 is too low".println()
 }
 
 fun part1(input: String): Long {
@@ -124,28 +142,23 @@ fun part2(input: String): BigInteger {
 
 //    memoryDump3(memory, memorySize).also {
 //        it.println()
-//        check(it == "00...111...2...333.44.5555.6666.777.888899")
+////        check(it == "00...111...2...333.44.5555.6666.777.888899")
 //    }
 
     defrag4(memory, memorySize)
 
 //    memoryDump3(memory, memorySize).also {
-//        "WTF".println()
 //        it.println()
-//        "FTW".println()
-//        check(it == "00992111777.44.333....5555.6666.....8888..")
+////        check(it == "00...111...2...333.44.5555.6666.777.888899")
 //    }
+    return checksum2(memory)
+}
 
-    val r = memoryDump3(memory, memorySize).mapIndexed { index, c ->
-        if (c != '.' && c != '0') {
-            (index * (c - '0')).toLong()
-        } else {
-            0
+fun checksum2(memory: SortedSet<FileBlock>) : BigInteger {
+    return memory.fold(BigInteger.ZERO) { acc, block ->
+        acc + (block.start..<block.end).fold(BigInteger.ZERO) { acc, index ->
+            acc + BigInteger.valueOf(index.toLong() * block.id.toLong())
         }
-    }
-
-    return r.fold(BigInteger.ZERO) { acc, next ->
-        acc + BigInteger.valueOf(next)
     }
 }
 
@@ -178,50 +191,94 @@ fun defrag4(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock>
 //    println()
 
     // Create buckets
-    val maxBlockSize = 9
-    val buckets = List(maxBlockSize + 1) { sortedSetOf<FileBlock>(kotlin.Comparator { o1, o2 -> o2.compareTo(o1) }) }
+//    val maxBlockSize = 9
+//    val buckets = List(maxBlockSize + 1) { sortedSetOf<FileBlock>(kotlin.Comparator { o1, o2 -> o2.compareTo(o1) }) }
+//
+//    memory.forEach { block ->
+//        ((block.size)..(maxBlockSize)).forEach { bs ->
+//            buckets[bs].add(block)
+//        }
+//    }
 
-    memory.forEach { block ->
-        ((block.size)..(maxBlockSize)).forEach { bs ->
-            buckets[bs].add(block)
+    val blocksQueue = memory.toSortedSet { o1, o2 -> o2.id.compareTo(o1.id) }
+
+//    blocksQueue.take(5).println()
+//    blocksQueue.reversed().take(5).println()
+//
+//    return memory
+
+    while (blocksQueue.isNotEmpty()) {
+        val next = blocksQueue.removeFirst()
+
+        if (blocksQueue.isEmpty()) {
+            // Don't move the last block...
+            break
         }
+
+        memory.takeWhile { it.start <= next.start }.windowed(2, 1).firstOrNull { (a, b) ->
+            b.start - a.end >= next.size
+        }?.first()?.end?.let { newStart ->
+            if (newStart > next.start) {
+                error("Attempted to move $next to $newStart")
+            }
+
+            val newBlock = next.copy(start = newStart)
+            memory.remove(next)
+            memory.add(newBlock)
+//            memoryDump3(memory, memorySize).println()
+        }
+
+//        memory.windowed(2, 1).firstOrNull { (a, b) ->
+//            a.end < next.start && b.start - a.end >= next.size
+//        }?.first()?.end?.let { newStart ->
+//            if (newStart > next.start) {
+//                error("Attempted to move $next to $newStart")
+//            }
+//
+//            val newBlock = next.copy(start = newStart)
+//            memory.remove(next)
+//            memory.add(newBlock)
+//        }
     }
+
+    return memory
+
 
 //    buckets.forEachIndexed { index, bucket ->
 //        "${index} -> ${bucket}".println()
 //    }
 //
 //    return memory
-
-    val spaces = memory.windowed(2, 1).mapNotNull { (a, b) ->
-        if (a.end < b.start) {
-            a.end .. b.start
-        } else null
-    }.toSet()
-
-    spaces.forEach { space ->
-//        "Filling $space".println()
-        val size = space.last - space.first
-
-        var spaceToFill = size
-
-        while (spaceToFill > 0) {
-//            "Looking for block to fill $spaceToFill".println()
-            val block = getNextCandidate(buckets, spaceToFill)
-            if (block != null) {
-//                "Block found $block".println()
-                val newBlock = block.copy(start = space.last- spaceToFill)
-                memory.add(newBlock)
-                memory.remove(block)
-                spaceToFill -= block.size
-            } else {
-//                "No block found for $spaceToFill".println()
-                break
-            }
-        }
-    }
-
-    return memory
+//
+//    val spaces = memory.windowed(2, 1).mapNotNull { (a, b) ->
+//        if (a.end < b.start) {
+//            a.end .. b.start
+//        } else null
+//    }.toSet()
+//
+//    spaces.forEach { space ->
+////        "Filling $space".println()
+//        val size = space.last - space.first
+//
+//        var spaceToFill = size
+//
+//        while (spaceToFill > 0) {
+////            "Looking for block to fill $spaceToFill".println()
+//            val block = getNextCandidate(buckets, spaceToFill)
+//            if (block != null) {
+////                "Block found $block".println()
+//                val newBlock = block.copy(start = space.last- spaceToFill)
+//                memory.add(newBlock)
+//                memory.remove(block)
+//                spaceToFill -= block.size
+//            } else {
+////                "No block found for $spaceToFill".println()
+//                break
+//            }
+//        }
+//    }
+//
+//    return memory
 }
 
 fun getNextCandidate(buckets: List<SortedSet<FileBlock>>, spaceToFill: Int): FileBlock? {
@@ -299,6 +356,12 @@ fun createMemory3(map: List<Int>): SortedSet<FileBlock> {
 
     return sortedSetOf<FileBlock>().apply {
         map.windowed(2, 2, partialWindows = true).forEach {
+            val fileBlockSize = it.first()
+
+            if (fileBlockSize == 0) {
+                error("Zero sized file block. WTF?")
+            }
+
             if (it.first() > 0) {
                 add(
                     FileBlock(
