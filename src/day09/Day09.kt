@@ -61,7 +61,7 @@ private fun createMemory1(map: List<Int>): MutableList<Int> {
     return result
 }
 
-fun defrag1(memory: MutableList<Int>) {
+private fun defrag1(memory: MutableList<Int>) {
     var tail = memory.indices.last
     var head = 0
 
@@ -106,7 +106,7 @@ fun defrag1(memory: MutableList<Int>) {
     }
 }
 
-fun part2(input: String): BigInteger {
+private fun part2(input: String): BigInteger {
     val memory = createMemory2(
         input.map { it - '0' }
     )
@@ -130,7 +130,7 @@ fun part2(input: String): BigInteger {
     return checksum2(memory)
 }
 
-fun checksum2(memory: SortedSet<FileBlock>): BigInteger {
+private fun checksum2(memory: SortedSet<FileBlock>): BigInteger {
     return memory.fold(BigInteger.ZERO) { acc, block ->
         acc + (block.start..<block.end).fold(BigInteger.ZERO) { acc2, index ->
             acc2 + BigInteger.valueOf(index.toLong() * block.id.toLong())
@@ -138,7 +138,7 @@ fun checksum2(memory: SortedSet<FileBlock>): BigInteger {
     }
 }
 
-fun memoryDump2(
+private fun memoryDump2(
     memory: SortedSet<FileBlock>,
     memorySize: Int,
 ): String {
@@ -157,7 +157,7 @@ fun memoryDump2(
     }
 }
 
-fun defrag3(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock> {
+private fun defrag3(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock> {
     // Constructs a list of the block in descending order of the block id
     val blocksQueue = memory.toSortedSet { o1, o2 -> o2.id.compareTo(o1.id) }
 
@@ -202,7 +202,7 @@ fun defrag3(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock>
 
 private fun FileBlock.toEmptyBlock() = EmptyBlock(this.start, this.size)
 
-fun addEmptyBlock(freeSpacesBySize: MutableMap<Int, SortedSet<EmptyBlock>>, newEmptyBlock: EmptyBlock) {
+private fun addEmptyBlock(freeSpacesBySize: MutableMap<Int, SortedSet<EmptyBlock>>, newEmptyBlock: EmptyBlock) {
     // Do we need to merge with the next empty block?
     val mergeBlock = freeSpacesBySize.firstNotNullOfOrNull { (_, value) ->
         value.tailSet(newEmptyBlock).firstOrNull()?.let {
