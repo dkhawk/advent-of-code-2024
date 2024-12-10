@@ -115,22 +115,25 @@ fun part2(input: String): BigInteger {
 
 //    memoryDump2(memory, memorySize).also {
 //        it.println()
-////        check(it == "00...111...2...333.44.5555.6666.777.888899")
+//        check(it == "00...111...2...333.44.5555.6666.777.888899")
 //    }
 
-    defrag2(memory, memorySize)
+//    defrag2(memory, memorySize)
+
+    defrag3(memory, memorySize)
 
 //    memoryDump2(memory, memorySize).also {
 //        it.println()
-////        check(it == "00...111...2...333.44.5555.6666.777.888899")
+//        check(it == "00992111777.44.333....5555.6666.....8888..")
 //    }
+
     return checksum2(memory)
 }
 
 fun checksum2(memory: SortedSet<FileBlock>): BigInteger {
     return memory.fold(BigInteger.ZERO) { acc, block ->
-        acc + (block.start..<block.end).fold(BigInteger.ZERO) { acc, index ->
-            acc + BigInteger.valueOf(index.toLong() * block.id.toLong())
+        acc + (block.start..<block.end).fold(BigInteger.ZERO) { acc2, index ->
+            acc2 + BigInteger.valueOf(index.toLong() * block.id.toLong())
         }
     }
 }
@@ -154,30 +157,76 @@ fun memoryDump2(
     }
 }
 
-fun defrag2(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock> {
+fun defrag3(memory: SortedSet<FileBlock>, memorySize: Int): SortedSet<FileBlock> {
     // Constructs a list of the block in descending order of the block id
     val blocksQueue = memory.toSortedSet { o1, o2 -> o2.id.compareTo(o1.id) }
 
-    while (blocksQueue.isNotEmpty()) {
-        val next = blocksQueue.removeFirst()
+    val freeSpacesBySize = mutableMapOf<Int, SortedSet<EmptyBlock>>()
 
-        memory
-            // Find all gaps to the left of the block to move
-            .takeWhile { it.start <= next.start }
-            // A gap lands between two blocks...
-            .windowed(2, 1)
-            // Grab the first one that fits
-            .firstOrNull { (a, b) ->
-                b.start - a.end >= next.size
-            }?.first()?.end?.let { newStart ->
-                val newBlock = next.copy(start = newStart)
-                memory.remove(next)
-                memory.add(newBlock)
-                // memoryDump3(memory, memorySize).println()
+    // Memory ends with a file block!
+    memory.windowed(2, 1).forEach { (a, b) ->
+        if (b.start > a.end) {
+            val block = EmptyBlock(a.end, b.start - a.end)
+            freeSpacesBySize.getOrPut(block.size, { sortedSetOf() }).add(block)
+        }
+    }
+
+    while (blocksQueue.isNotEmpty()) {
+        val fileBlock = blocksQueue.removeFirst()
+        val emptyBlock = nextFreeBlockOfSufficientSize(freeSpacesBySize, fileBlock.size)
+
+        if (emptyBlock == null || fileBlock.start <= emptyBlock.start) {
+            continue
+        } else {
+            val newBlock = fileBlock.copy(start = emptyBlock.start)
+            if (newBlock.size < emptyBlock.size) {
+                val newEmptyBlock = EmptyBlock(newBlock.end, emptyBlock.size - newBlock.size)
+                addEmptyBlock(freeSpacesBySize, newEmptyBlock)
             }
+
+            // Remove this empty block!
+            removeEmptyBlock(emptyBlock, freeSpacesBySize)
+
+            // Remove the old memory block and create a new empty block of the same size and location
+            memory.remove(fileBlock)
+            addEmptyBlock(freeSpacesBySize, fileBlock.toEmptyBlock())
+
+            // Finally, add the new block in its new location
+            memory.add(newBlock)
+        }
+//        memoryDump2(memory, memorySize).println()
     }
 
     return memory
+}
+
+private fun FileBlock.toEmptyBlock() = EmptyBlock(this.start, this.size)
+
+fun addEmptyBlock(freeSpacesBySize: MutableMap<Int, SortedSet<EmptyBlock>>, newEmptyBlock: EmptyBlock) {
+    // Do we need to merge with the next empty block?
+    val mergeBlock = freeSpacesBySize.firstNotNullOfOrNull { (_, value) ->
+        value.tailSet(newEmptyBlock).firstOrNull()?.let {
+            if (it.start == newEmptyBlock.end) it else null
+        }
+    }
+
+    if (mergeBlock != null) {
+        val em = EmptyBlock(newEmptyBlock.start, mergeBlock.size + newEmptyBlock.size)
+        removeEmptyBlock(mergeBlock, freeSpacesBySize)
+        freeSpacesBySize.getOrPut(em.size, { sortedSetOf() }).add(em)
+    } else {
+        freeSpacesBySize.getOrPut(newEmptyBlock.size, { sortedSetOf() }).add(newEmptyBlock)
+    }
+}
+
+fun removeEmptyBlock(emptyBlock: EmptyBlock, freeSpacesBySize: MutableMap<Int, SortedSet<EmptyBlock>>) {
+    freeSpacesBySize[emptyBlock.size]?.remove(emptyBlock)
+}
+
+fun nextFreeBlockOfSufficientSize(freeSpacesBySize: MutableMap<Int, SortedSet<EmptyBlock>>, size: Int): EmptyBlock? {
+    return freeSpacesBySize.keys.filter { it >= size }
+        .mapNotNull { freeSpacesBySize.getValue(it).firstOrNull() }
+        .minByOrNull { it.start }
 }
 
 data class FileBlock(val id: Int, val start: Int, val size: Int) : Comparable<FileBlock> {
@@ -187,6 +236,15 @@ data class FileBlock(val id: Int, val start: Int, val size: Int) : Comparable<Fi
         }
 
     override operator fun compareTo(other: FileBlock) = compareValuesBy(this, other) { it.start }
+}
+
+data class EmptyBlock(val start: Int, val size: Int) : Comparable<EmptyBlock> {
+    val end: Int
+        get() {
+            return start + size
+        }
+
+    override operator fun compareTo(other: EmptyBlock) = compareValuesBy(this, other) { it.start }
 }
 
 fun createMemory2(map: List<Int>): SortedSet<FileBlock> {
