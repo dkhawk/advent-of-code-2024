@@ -1,6 +1,6 @@
 package day10
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import utils.*
 import kotlin.time.measureTime
 
@@ -72,19 +72,12 @@ fun allNines(trailhead: Vector, grid: Map<Vector, Char>): MutableSet<Vector> {
     val queue = ArrayDeque<Vector>()
     queue.add(trailhead)
 
-    val visited = mutableSetOf<Vector>()
+    val seen = mutableSetOf(trailhead)
 
     val result = mutableSetOf<Vector>()
 
     while (queue.isNotEmpty()) {
         val current = queue.removeFirst()
-
-        if (current in visited) {
-            continue
-        }
-
-        visited.add(current)
-
         val height = grid.getValue(current)
 
         if (height == '9') {
@@ -92,7 +85,14 @@ fun allNines(trailhead: Vector, grid: Map<Vector, Char>): MutableSet<Vector> {
             continue
         }
 
-        grid.allHeadings(current).filter { it.second - height == 1 }.map { it.first }.also { queue.addAll(it) }
+        grid.allHeadings(current)
+            .filter { it.second - height == 1 }
+            .map { it.first }
+            .filter { it !in seen }
+            .also {
+                queue.addAll(it)
+                seen.addAll(it)
+            }
     }
 
     return result
@@ -104,13 +104,17 @@ private fun Map<Vector, Char>.allHeadings(location: Vector): List<Pair<Vector, C
     }
 }
 
-private fun part2(input: String): Int {
-    val grid = buildGrid(input.lines()).withDefault { '.' }
+private suspend fun part2(input: String): Int {
+    return withContext(Dispatchers.Default) {
+        val grid = buildGrid(input.lines()).withDefault { '.' }
 
-    val trailheads = grid.entries.filter { (_, v) -> v == '0' }
+        val trailheads = grid.entries.filter { (_, v) -> v == '0' }
 
-    return trailheads.sumOf { (trailhead, v) ->
-        allPathsToNines(trailhead, grid).count()
+        trailheads.map { (trailhead, v) ->
+            async {
+                allPathsToNines(trailhead, grid).count()
+            }
+        }.awaitAll().sum()
     }
 }
 
