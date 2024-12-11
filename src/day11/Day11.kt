@@ -51,6 +51,11 @@ private fun part1(input: String): Int {
     return last.count()
 }
 
+typealias RockLabel = Long
+typealias RockCount = Long
+typealias RockPile = Map<RockLabel, RockCount>
+typealias MutableRockPile = MutableMap<RockLabel, RockCount>
+
 private fun part2(input: String, generations: Int): Long {
     val rocks = input.split(" ").map { it.toLong() }
     val rockPile =
@@ -58,30 +63,30 @@ private fun part2(input: String, generations: Int): Long {
             .toMap()
 
     return (0 until generations).fold(rockPile) { oldRockPile, _ ->
-        val newRockPile = mutableMapOf<Long, Long>()
-        oldRockPile.entries.forEach { (rock, rockCount) ->
-            val rs = rock.toString()
+        buildRockPile {
+            oldRockPile.entries.forEach { (rock, rockCount) ->
+                val rs = rock.toString()
 
-            when {
-                rock == 0L -> newRockPile.addTo(1L, rockCount)
-                rs.length.isEven() -> {
-                    val mid = rs.length shr 1
-                    val k1 = rs.substring(0, mid).toLong()
-                    val k2 = rs.substring(mid).toLong()
+                when {
+                    rock == 0L -> addTo(1L, rockCount)
 
-                    newRockPile.addTo(k1, rockCount)
-                    newRockPile.addTo(k2, rockCount)
+                    rs.length.isEven() -> {
+                        rs.chunked(rs.length shr 1).forEach { key -> addTo(key.toLong(), rockCount) }
+                    }
+
+                    else -> addTo(rock * 2024L, rockCount)
                 }
-                else -> newRockPile.addTo(rock * 2024L, rockCount)
             }
         }
-
-        newRockPile
-    }.values.fold(0L) { a, b -> a + b }
+    }.values.sum()
 }
 
-private fun <K> MutableMap<K, Long>.addTo(k: K, amount: Long) {
-    this[k] = this.getOrDefault(k, 0L) + amount
+private fun buildRockPile(block: MutableRockPile.() -> Unit): RockPile {
+    return mutableMapOf<RockLabel, RockCount>().apply(block)
+}
+
+private fun MutableRockPile.addTo(rock: RockLabel, count: RockCount) {
+    this[rock] = this.getOrDefault(rock, 0L) + count
 }
 
 private fun Int.isEven(): Boolean {
