@@ -2,7 +2,6 @@ package day11
 
 import kotlinx.coroutines.runBlocking
 import utils.*
-import java.math.BigInteger
 import kotlin.time.measureTime
 
 val testInput = """
@@ -11,8 +10,8 @@ val testInput = """
 
 fun main() = runBlocking {
     check(part1(testInput) == 55312)
-    check(part2(testInput, 6) == BigInteger.valueOf(22L))
-    check(part2(testInput, 25) == BigInteger.valueOf(55312L))
+    check(part2(testInput, 6) == 22L)
+    check(part2(testInput, 25) == 55312L)
 
     val input = readText("inputs/11")
     part1(input).println()
@@ -52,47 +51,40 @@ private fun part1(input: String): Int {
     return last.count()
 }
 
-private fun part2(input: String, generations: Int): BigInteger {
+private fun part2(input: String, generations: Int): Long {
     val rocks = input.split(" ").map { it.toLong() }
-    var rockPile =
-        rocks.groupingBy { it }.eachCount().map { BigInteger.valueOf(it.key) to BigInteger.valueOf(it.value.toLong()) }
+    val rockPile =
+        rocks.groupingBy { it }.eachCount().map { it.key to it.value.toLong() }
             .toMap()
 
-    repeat(generations) {
-        val entries = rockPile.entries
+    return (0 until generations).fold(rockPile) { oldRockPile, _ ->
+        val newRockPile = mutableMapOf<Long, Long>()
+        oldRockPile.entries.forEach { (rock, rockCount) ->
+            val rs = rock.toString()
 
-        val newRocks = buildList {
-            entries.forEach { (rock, rockCount) ->
-                if (rock == BigInteger.ZERO) {
-                    add(BigInteger.ONE to rockCount)
-                } else {
-                    val rs = rock.toString()
-                    if (rs.length.isEven()) {
-                        val mid = rs.length shr 1
-                        val k1 = BigInteger.valueOf(rs.substring(0, mid).toLong())
-                        val k2 = BigInteger.valueOf(rs.substring(mid).toLong())
+            when {
+                rock == 0L -> newRockPile.addTo(1L, rockCount)
+                rs.length.isEven() -> {
+                    val mid = rs.length shr 1
+                    val k1 = rs.substring(0, mid).toLong()
+                    val k2 = rs.substring(mid).toLong()
 
-                        add(k1 to rockCount)
-                        add(k2 to rockCount)
-                    } else {
-                        val k = rock * BigInteger.valueOf(2024L)
-                        add(k to rockCount)
-                    }
+                    newRockPile.addTo(k1, rockCount)
+                    newRockPile.addTo(k2, rockCount)
                 }
+                else -> newRockPile.addTo(rock * 2024L, rockCount)
             }
         }
 
-        val newRockPile = mutableMapOf<BigInteger, BigInteger>()
-        newRocks.forEach { (rock, rockCount) ->
-            newRockPile[rock] = newRockPile.getOrDefault(rock, BigInteger.ZERO) + rockCount
-        }
+        newRockPile
+    }.values.fold(0L) { a, b -> a + b }
+}
 
-        rockPile = newRockPile.toMap()
-    }
-
-    return rockPile.values.fold(BigInteger.ZERO) { a, b -> a + b }
+private fun <K> MutableMap<K, Long>.addTo(k: K, amount: Long) {
+    this[k] = this.getOrDefault(k, 0L) + amount
 }
 
 private fun Int.isEven(): Boolean {
     return this.mod(2) == 0
 }
+
