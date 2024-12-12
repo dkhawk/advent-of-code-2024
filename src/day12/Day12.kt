@@ -1,6 +1,7 @@
 package day12
 
 import utils.*
+import kotlin.time.measureTime
 
 val testInput1 = """
     AAAA
@@ -56,8 +57,16 @@ fun main() {
     check(part2(testInput5) == 368)
 
     val input = readLines("inputs/12")
-    part1(input).println()
-    part2(input).println()
+    part1(input).also {
+        it.println()
+        check(it == 1477762)
+    }
+    measureTime {
+        part2(input).also {
+            it.println()
+            check(it == 923480)
+        }
+    }.println()
 }
 
 private fun part1(input: List<String>): Int {
@@ -85,15 +94,11 @@ private fun part1(input: List<String>): Int {
 }
 
 private fun createClusters(grid: Map<Vector, Char>): MutableMap<Int, MutableSet<Vector>> {
-    val clusterIndexMap = grid.entries.mapIndexed { index, (location, _) ->
+    val locationToClusterIdMap = grid.entries.mapIndexed { index, (location, _) ->
         location to index
-    }
+    }.toMap().toMutableMap()
 
-    val inverseClusters = clusterIndexMap.associate {
-        it.first to it.second
-    }.toMutableMap()
-
-    val clusters = clusterIndexMap.associate { (location, value) ->
+    val clusterToLocationsMap = locationToClusterIdMap.entries.associate { (location, value) ->
         value to mutableSetOf(location)
     }.toMutableMap()
 
@@ -101,34 +106,45 @@ private fun createClusters(grid: Map<Vector, Char>): MutableMap<Int, MutableSet<
         location to Heading.entries.map { heading -> location.advance(heading) }.forEach { neighbor ->
             val neighborValue = grid.getValue(neighbor)
             if (neighborValue == value) {
-                mergeClusters(clusters, inverseClusters, neighbor, location)
+                mergeClusters(
+                    clusterToLocationsMap = clusterToLocationsMap,
+                    locationToClusterIdMap = locationToClusterIdMap,
+                    targetLocation = location,
+                    neighborLocation = neighbor,
+                )
             }
         }
     }
-    return clusters
+    return clusterToLocationsMap
 }
 
 fun mergeClusters(
-    clusterMap: MutableMap<Int, MutableSet<Vector>>,
-    inverseClusters: MutableMap<Vector, Int>,
-    neighbor: Vector,
-    location: Vector
+    clusterToLocationsMap: MutableMap<Int, MutableSet<Vector>>,
+    locationToClusterIdMap: MutableMap<Vector, Int>,
+    targetLocation: Vector,
+    neighborLocation: Vector,
 ) {
-    val myClusterId = inverseClusters.getValue(location)
-    val neighborClusterId = inverseClusters.getValue(neighbor)
+    val myClusterId = locationToClusterIdMap.getValue(targetLocation)
+    val neighborClusterId = locationToClusterIdMap.getValue(neighborLocation)
 
+    // Already in the same cluster
     if (myClusterId == neighborClusterId) {
         return
     }
 
-    val others = clusterMap.getValue(neighborClusterId)
+    // All locations in the neighbor's cluster
+    val others = clusterToLocationsMap.getValue(neighborClusterId)
 
+    // Change the cluster id for all of the neighbor's cluster mates
     others.forEach { other ->
-        inverseClusters[other] = myClusterId
+        locationToClusterIdMap[other] = myClusterId
     }
 
-    clusterMap.getValue(myClusterId).addAll(others)
-    clusterMap.remove(neighborClusterId)
+    // Add of the neighbor's cluster mates to my cluster
+    clusterToLocationsMap.getValue(myClusterId).addAll(others)
+
+    // Remove the now empty neighbor's cluster
+    clusterToLocationsMap.remove(neighborClusterId)
 }
 
 data class Region(
@@ -171,20 +187,19 @@ private fun part2(input: List<String>): Int  {
 }
 
 fun getStraightPerimeterCount(plots: MutableSet<Vector>, perimeters: Map<Vector, List<Heading>>): Int {
-    var discount = 0
+    var clusterPerimeter = plots.sumOf { plot -> perimeters.getValue(plot).size }
 
-    val clusterPerimeter = plots.map { plot -> perimeters.getValue(plot).size }.sum()
-
+    // Remove extraneous perimeter chunks
     plots.map { plot ->
         val myPerimeter = perimeters.getValue(plot)
         val east = plot.advance(Heading.EAST)
         if (east in plots) {
             val eastPerimeter = perimeters.getValue(east)
             if (Heading.NORTH in eastPerimeter && Heading.NORTH in myPerimeter) {
-                discount += 1
+                clusterPerimeter -= 1
             }
             if (Heading.SOUTH in eastPerimeter && Heading.SOUTH in myPerimeter) {
-                discount += 1
+                clusterPerimeter -= 1
             }
         }
 
@@ -192,15 +207,15 @@ fun getStraightPerimeterCount(plots: MutableSet<Vector>, perimeters: Map<Vector,
         if (south in plots) {
             val southPerimeter = perimeters.getValue(south)
             if (Heading.WEST in southPerimeter && Heading.WEST in myPerimeter) {
-                discount += 1
+                clusterPerimeter -= 1
             }
             if (Heading.EAST in southPerimeter && Heading.EAST in myPerimeter) {
-                discount += 1
+                clusterPerimeter -= 1
             }
         }
     }
 
-    return clusterPerimeter - discount
+    return clusterPerimeter
 }
 
 private fun Map<Vector, Char>.getNeighbors(location: Vector): List<Pair<Heading, Char>> {
