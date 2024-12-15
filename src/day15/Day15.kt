@@ -66,8 +66,8 @@ fun main() {
 }
 
 private fun part1(input: List<String>): Int {
-    val grid = getGrid(input)
-    val moves = getMoves(input)
+    val grid = createGrid(input)
+    val moves = input.toMoves()
     var currentLocation = grid.entries.first { it.value == '@' }.key
 
     moves.forEach { heading ->
@@ -75,6 +75,8 @@ private fun part1(input: List<String>): Int {
     }
     return grid.score()
 }
+
+private fun List<String>.toMoves() = getMoves(this)
 
 private fun getMoves(input: List<String>) =
     input.dropWhile { it.isNotBlank() }.flatMap { line ->
@@ -89,7 +91,7 @@ private fun getMoves(input: List<String>) =
         }
     }.asSequence()
 
-private fun getGrid(input: List<String>) =
+private fun createGrid(input: List<String>) =
     input.takeWhile { it.isNotBlank() }.toGrid().toMutableMap()
 
 private fun Map<Vector, Char>.score(): Int {
@@ -131,8 +133,8 @@ private fun moveRobot(grid: MutableMap<Vector, Char>, location: Vector, heading:
 }
 
 private fun part2(input: List<String>): Int {
-    val grid = getGrid(input).transformForPart2().toMutableMap()
-    val moves = getMoves(input)
+    val grid = createGrid(input).transformForPart2().toMutableMap()
+    val moves = input.toMoves()
     var currentLocation = grid.entries.first { it.value == '@' }.key
 
     moves.forEach { heading ->
