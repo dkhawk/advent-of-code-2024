@@ -123,10 +123,10 @@ fun Map<Vector, Char>.printGrid(
 
     val gw = this.withDefault { default }
 
-    (minLocation..maxLocation).map { row ->
-        row.joinToString("") {
+    (minLocation..maxLocation).mapIndexed { index, row ->
+        (String.format("%4d ", index) + row.joinToString("") {
             formatter(it, gw.getValue(it))
-        }.println()
+        }).println()
     }
 }
 
@@ -148,6 +148,8 @@ fun buildGrid(input: List<String>): Map<Vector, Char> {
         }.flatten()
     }
 }
+
+fun List<String>.toGrid() = buildGrid(this)
 
 fun buildGridNoFilter(input: List<String>): Map<Vector, Char> {
     return buildMap {

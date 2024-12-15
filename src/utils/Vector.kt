@@ -61,3 +61,8 @@ data class VectorLong(val x: Long, val y: Long) {
 }
 
 private fun Vector.toLongVector() = VectorLong(x.toLong(), y.toLong())
+
+fun VectorLong.toVector() = Vector(
+    x = x.toInt(),
+    y = y.toInt()
+)
