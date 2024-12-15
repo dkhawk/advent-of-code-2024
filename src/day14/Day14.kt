@@ -88,25 +88,18 @@ fun part2(input: List<String>, areaSize: Vector): Long {
 
     val (xPeriod, yPeriod) = findPeriods(variancesBySecond)
 
-    val xSource = sequence {
-        var seconds = xPeriod.origin
+    fun createSource(period: Period) = sequence {
+        var seconds = period.origin
         yield(seconds)
 
         while (true) {
-            seconds += xPeriod.period
+            seconds += period.period
             yield(seconds)
         }
     }.asIterable().iterator()
 
-    val ySource = sequence {
-        var seconds = yPeriod.origin
-        yield(seconds)
-
-        while (true) {
-            seconds += yPeriod.period
-            yield(seconds)
-        }
-    }.asIterable().iterator()
+    val xSource = createSource(xPeriod)
+    val ySource = createSource(yPeriod)
 
     var maxTries = 1000000
 
