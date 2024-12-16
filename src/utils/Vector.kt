@@ -66,3 +66,5 @@ fun VectorLong.toVector() = Vector(
     x = x.toInt(),
     y = y.toInt()
 )
+
+fun Pair<Int, Int>.toVector() = Vector(first, second)

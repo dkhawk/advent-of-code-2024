@@ -114,6 +114,10 @@ fun Collection<Vector>.minMax(): Bounds {
     )
 }
 
+fun Map<Vector, Char>.getBounds(): Bounds {
+    return keys.minMax()
+}
+
 fun Map<Vector, Char>.printGrid(
     bounds: Bounds? = null,
     default: Char = '.',
