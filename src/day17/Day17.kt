@@ -40,13 +40,19 @@ fun main() {
 //
     val input = readLines("inputs/17")
 
-    "vvvvv".println()
-    part1(testInput3, "4676315400155301").println()
-    "2,4,1,2,7,5,4,5,1,3,5,5,0,3,3,0".println()
-    "^^^^^".println()
+    // This stuff actually works.  Don't mess it up!
+//    "vvvvv".println()
+//    part1(testInput3, "4676315400155301").println()
+//    "2,4,1,2,7,5,4,5,1,3,5,5,0,3,3,0".println()
+//    "^^^^^".println()
+
 //
 //    part2(input).println()
 //    "Corrected A is ?????".println()
+
+
+//    part2b(input)
+
 }
 
 private fun part1(input: List<String>, replacementA: String? = null): String {
@@ -145,6 +151,44 @@ fun expandString2(input: String): List<String> {
     return result
 }
 
+
+//private fun part2b(input: List<String>): String {
+//    val program = input[4].substringAfter(": ").split(",").map { it.toInt() }
+//
+//    "Program size is: ${program.size}".println()
+//    "Program is: ${program}".println()
+//
+//    // Uses base64
+//    val knownCorrect = mutableListOf<Int>()
+//
+//    fun createGuess(digits: List<Int>): Long {
+//        return digits.reversed().fold(0L) { acc, i ->
+//            acc shl 6 + i
+//        }
+//    }
+//
+//    val candidate = createGuess(knownCorrect)
+//
+//    var matchSize = 1
+//
+//    while (matchSize < 4) {
+//
+//        val num = createGuess(knownCorrect)
+//
+//        val f = (0..(1 shl 6)).first {
+//            val candidate = (num shl 6) + it
+//            checkCandidate(candidate, program, matchSize)
+//        }
+//
+//        "$f".println()
+//
+//        knownCorrect.add(f)
+//
+//        matchSize += 1
+//    }
+//
+//    return ""
+//}
 
 private fun part2(input: List<String>): String {
 //    val registers = input.take(3).map { it.substringAfter(": ").trim().toInt() }.toMutableList()
