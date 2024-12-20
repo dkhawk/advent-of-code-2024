@@ -1,9 +1,11 @@
 package day20
 
+import kotlinx.coroutines.*
 import utils.*
 import utils.Vector
 import kotlin.collections.ArrayDeque
 import kotlin.math.abs
+import kotlin.time.measureTime
 
 val testInput = """
     ###############
@@ -29,7 +31,19 @@ fun main() {
 
     val input = readLines("inputs/20")
     part1(input, 100).println()
-    part2(input, 100).println()  // 823
+//    measureTime {
+//        part2(input, 100).println()  // 693.109250ms
+//    }.println()
+
+    measureTime {
+        part2b(input, 100).println()  // 342.174458ms
+        // should be 988931
+    }.println()
+
+//    measureTime {
+//        part2c(input, 100).println()  // 339.796375ms
+//        // should be 988931
+//    }.println()
 }
 
 private fun part1(input: List<String>, target: Int): Int {
@@ -46,13 +60,9 @@ private fun part1(input: List<String>, target: Int): Int {
 
     val hist = usefulCheats.groupBy { it.second }.map { (cheat, cheats) -> cheat to cheats.size }
 
-//    hist.joinToString("\n").println()
-
     val answer = hist.fold(0) { acc, cheat ->
         if (cheat.first >= target) acc + cheat.second else acc
     }
-
-    answer.println()
 
     return answer
 }
@@ -107,6 +117,62 @@ private fun solve(grid: Map<Vector, Char>, start: Vector, end: Vector): MutableM
     return visited
 }
 
+// Twice as fast with coroutines...
+private fun part2b(input: List<String>, target: Int): Int {
+    val grid = buildGrid(input)
+
+    val start = grid.entries.first { it.value == 'S' }.key
+    val end = grid.entries.first { it.value == 'E' }.key
+
+    val cm = solve(grid, start, end)
+
+    val costToFinish = cm[end]!!
+
+    val costMap = cm.map { it.key to (costToFinish - it.value) }.toMap().withDefault { Int.MAX_VALUE }
+
+    return runBlocking {
+        withContext(Dispatchers.Default) {
+            costMap.entries.map { (location, cost) ->
+                async {
+                    allCheats(location, costMap).map { it.second }
+                }
+            }
+        }.awaitAll().flatten().count { it >= target }
+    }
+}
+
+// Fail.  Don't have time to debug...
+private fun part2c(input: List<String>, target: Int): Int {
+    val grid = buildGrid(input)
+
+    val start = grid.entries.first { it.value == 'S' }.key
+    val end = grid.entries.first { it.value == 'E' }.key
+
+    val cm = solve(grid, start, end)
+
+    val costToFinish = cm[end]!!
+
+    val costMap = cm.map { it.key to (costToFinish - it.value) }.toMap().withDefault { Int.MAX_VALUE }
+
+    val origin = Vector(0, 0)
+    val kernel = ((origin - Vector(20, 20))..(origin + Vector(20, 20))).asSequence().flatten()
+        .filter { it.manhattanDistanceTo(origin) <= 20 }
+        .filterNot { it.manhattanDistanceTo(origin) < 2 }
+        .toSet()
+
+//    kernel.map { it to '*' }.toMap().withDefault { '.' }.printGrid().println()
+
+    return runBlocking {
+        withContext(Dispatchers.Default) {
+            costMap.entries.map { (location, cost) ->
+                async {
+                    fastCheats(location, costMap, kernel).map { it.second }
+                }
+            }
+        }.awaitAll().flatten().count { it >= target }
+    }
+}
+
 private fun part2(input: List<String>, target: Int): Int {
     val grid = buildGrid(input)
 
@@ -121,7 +187,7 @@ private fun part2(input: List<String>, target: Int): Int {
 
     val cheats = findCheats2(costMap)
 
-    return cheats.count { it >= target }.also { it.println() }
+    return cheats.count { it >= target }
 }
 
 fun findCheats2(costMap: Map<Vector, Int>): List<Int> {
@@ -139,6 +205,18 @@ fun allCheats(location: Vector, costMap: Map<Vector, Int>): List<Pair<Vector, In
         location.manhattanDistanceTo(it) <= 20 // Ignore locations that are too far to consider
     }.filter {
         // The candidate much be cheaper than the origin
+        costMap.getValue(it) < costMap.getValue(location)  // Ignore locations that are not on the original path or have a higher cost
+    }.map { candidate ->
+        // Calculate the savings
+        val originCost = costMap.getValue(location) - costMap.getValue(candidate)
+        val newCost = location.manhattanDistanceTo(candidate)
+        candidate to originCost - newCost
+    }.toList()
+}
+
+fun fastCheats(location: Vector, costMap: Map<Vector, Int>, kernel: Set<Vector>): List<Pair<Vector, Int>> {
+    return kernel.intersect(costMap.keys).filter {
+        // The candidate must be cheaper than the origin
         costMap.getValue(it) < costMap.getValue(location)  // Ignore locations that are not on the original path or have a higher cost
     }.map { candidate ->
         // Calculate the savings
