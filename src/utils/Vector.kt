@@ -1,5 +1,7 @@
 package utils
 
+import kotlin.math.abs
+
 data class Vector(val x: Int = 0, val y: Int = 0) {
     fun advance(heading8: Heading8): Vector {
         return this + heading8.vector
@@ -24,6 +26,16 @@ data class Vector(val x: Int = 0, val y: Int = 0) {
 
     operator fun times(scalar: Int): Vector {
         return Vector(x * scalar, y * scalar)
+    }
+
+    fun magnitude(): Int {
+        return abs(x) + abs(y)
+    }
+
+    fun toHeading(): Heading {
+        return Heading.entries.first {
+            it.vector == this
+        }
     }
 }
 
@@ -68,3 +80,6 @@ fun VectorLong.toVector() = Vector(
 )
 
 fun Pair<Int, Int>.toVector() = Vector(first, second)
+fun Vector.manhattanDistanceTo(other: Vector): Int {
+    return abs(x - other.x) + abs(y - other.y)
+}

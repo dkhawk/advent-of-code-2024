@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import utils.*
 import utils.Vector
 import kotlin.collections.ArrayDeque
-import kotlin.math.abs
 import kotlin.time.measureTime
 
 val testInput = """
@@ -224,9 +223,5 @@ fun fastCheats(location: Vector, costMap: Map<Vector, Int>, kernel: Set<Vector>)
         val newCost = location.manhattanDistanceTo(candidate)
         candidate to originCost - newCost
     }.toList()
-}
-
-private fun Vector.manhattanDistanceTo(other: Vector): Int {
-    return abs(x - other.x) + abs(y - other.y)
 }
 
