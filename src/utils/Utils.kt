@@ -26,6 +26,11 @@ fun Any?.println() = println(this)
 
 fun <T> Collection<T>.printAsLines() = this.joinToString("\n").println()
 
+fun <K, V> Map<K, V>.printAsLines() {
+    this.entries.printAsLines()
+}
+
+
 enum class Heading(val vector: Vector) {
     NORTH(Vector(0, -1)),
     WEST(Vector(-1, 0)), EAST(Vector(1, 0)),
