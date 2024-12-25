@@ -24,7 +24,7 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
  */
 fun Any?.println() = println(this)
 
-fun <T> Collection<T>.printAsLines() = this.joinToString("\n").println()
+fun <T> Iterable<T>.printAsLines() = this.joinToString("\n").println()
 
 fun <K, V> Map<K, V>.printAsLines() {
     this.entries.printAsLines()

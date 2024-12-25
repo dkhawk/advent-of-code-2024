@@ -9,7 +9,7 @@ import utils.*
 //    456A: <v<A>>^AA<vA<A>>^AAvAA<^A>A<vA>^A<A>A<vA>^A<A>A<v<A>A>^AAvA<^A>A
 //    379A: <v<A>>^AvA^A<vA<AA>>^AAvA<^A>AAvA^A<vA>^AA<A>A<v<A>A>^AAAvA<^A>A
 //""".trimIndent().lines()
-val testInput = """
+private val testInput = """
     029A
     980A
     179A
@@ -23,17 +23,16 @@ fun main() {
 
 // ========================================
 
-val dpadGrid = buildGrid(
+private val dpadGrid = buildGrid(
     """
     .^A
     <v>
 """.trimIndent().lines()
 )
 
-val dpad = dpadGrid.entries.associate { it.value to it.key }
+private val dpad = dpadGrid.entries.associate { it.value to it.key }
 
-
-val keypadGrid = buildGrid(
+private val keypadGrid = buildGrid(
     """
     789
     456
@@ -42,7 +41,7 @@ val keypadGrid = buildGrid(
 """.trimIndent().lines()
 )
 
-val keypad = keypadGrid.entries.associate { it.value to it.key }
+private val keypad = keypadGrid.entries.associate { it.value to it.key }
 
 // ========================================
 
@@ -90,7 +89,7 @@ data class StateWithGoal(
     val goal: Vector,
 )
 
-fun part1(input: List<String>): Int {
+private fun part1(input: List<String>): Int {
 
 //    getAllPaths(DpadRobot(dpad['A']!!), '<').toList().printAsLines()
 //    getAllPaths(KeypadRobot(keypad['A']!!), '7').toList().printAsLines()
@@ -186,7 +185,7 @@ private fun <E> List<E>.permutations(): Sequence<List<E>> = sequence {
     }
 }
 
-fun getHeadingSequences(robot: Robot, goal: Vector) = sequence {
+private fun getHeadingSequences(robot: Robot, goal: Vector) = sequence {
     val delta = goal - robot.location
 
     if (delta.x > 0) {
@@ -214,9 +213,9 @@ fun getHeadingSequences(robot: Robot, goal: Vector) = sequence {
     }
 }
 
-val statesWithMinPath = mutableMapOf<Pair<List<Robot>, String>, List<String>>()
+private val statesWithMinPath = mutableMapOf<Pair<List<Robot>, String>, List<String>>()
 
-fun findMinimumSequence(robots: List<Robot>, goal: String): List<String> {
+private fun findMinimumSequence(robots: List<Robot>, goal: String): List<String> {
     // If we already know the solution, return it!
     statesWithMinPath[robots to goal]?.let { return it }
 
