@@ -1,6 +1,7 @@
 package day21c
 
 import utils.*
+import kotlin.time.measureTime
 
 val testInput = """
     029A
@@ -12,7 +13,14 @@ val testInput = """
 
 
 fun main() {
-    part1(testInput).println()
+    check(part1(testInput) == 126384L)
+    val input = readLines("inputs/21")
+    part1(input)
+//    part2(input)
+
+    measureTime {
+        part2(input)
+    }.println()
 }
 
 val dpadGrid = buildGrid(
@@ -75,102 +83,85 @@ data class KeypadRobot(override val location: Vector = keypad['A']!!) : Robot {
         get() = keypad
 }
 
-private fun part1(input: List<String>): Int {
-//    getShortestPath(
-//        listOf(
-//            DpadRobot()
-//        ),
-//        "AAA"
-//    ).println()
-//
-//    TODO()
-//
-//    getShortestPath(
-//        listOf(
-//            DpadRobot()
-//        ),
-//        "v<<A"
-//    ).println()
-//
-//    TODO()
-//
-    getShortestPath(
-        listOf(
-            KeypadRobot(),
-            DpadRobot(),
-            DpadRobot()
-        ),
-        "379A"
-    ).println()
-
-    TODO()
-
-    val robots = listOf(
-        KeypadRobot(),
-        DpadRobot(),
-        DpadRobot(),
-    )
-
-    val goalPath = "029A"
-
-    // <A
-    // <v<A>>^A
-
-//    val paths = getAllPaths(robots.first(), Vector(1,2), Vector(2, 0))
-//
-//    paths.printAsLines()
-//
-//    TODO()
-
-    val shortestPath = getShortestPath(robots, goalPath)
-
-    shortestPath.println()
-
-//
-//
-//    val keypadRobot = KeypadRobot()
-//    val keypadPaths = getAllPaths(keypadRobot, '0')
-//
-//    "Keypad moves".println()
-//    keypadPaths.toList().printAsLines()
-//    println()
-//
-//    val keypadMoves = keypadPaths.map { path ->
-//        keypadRobot.pathToGoalString(path)
-//    }.toList()
-//
-//
-//    keypadMoves.map { moveSequence ->
-//        val radiationRobot = DpadRobot()
-//        val radiationPaths = getAllPaths(radiationRobot, moveSequence)
-//
-//        val radiationMoves = radiationPaths.map { paths ->
-//            paths.toList().map {
-//                radiationRobot.pathToGoalString(it)
-//            }
-//        }
-//
-//        "Radiation moves".println()
-//        radiationMoves.printAsLines()
-//        println()
-//
-//        radiationMoves.map { radiationMoveList ->
-//            "Next radiation path".println()
-//            radiationMoveList.println()
-//
-//             radiationMoveList.map {moves ->
-//                val coldRobot = DpadRobot()
-//                val paths = getAllPaths(coldRobot, moves).map { candidate ->
-//                    candidate.map { coldRobot.pathToGoalString(it).toList() }.toList()
-//                }
-//                paths.printAsLines()
-//                paths
-//            }
-//        }
-//    }
-
-    TODO()
+private fun part1(input: List<String>): Long {
+    return input.map { code ->
+        code to getShortestPathSize(
+            robots = listOf(
+                KeypadRobot(),
+                DpadRobot(),
+                DpadRobot()
+            ),
+            outputToProduce = code
+        )
+    }.sumOf { (code, path) ->
+        code.filter { it.isDigit() }.toInt() * path
+    }.also {
+        it.println()
+    }
 }
+
+private fun part1a(input: List<String>): Long {
+    return input.map { code ->
+        code to getShortestPath(
+            robots = listOf(
+                KeypadRobot(),
+                DpadRobot(),
+                DpadRobot()
+            ),
+            outputToProduce = code
+        )
+    }.sumOf { (code, path) ->
+        code.filter { it.isDigit() }.toInt() * path.length.toLong()
+    }.also {
+        it.println()
+    }
+}
+
+//private fun part2a(input: List<String>): Long {
+//    val numBots = 25
+//    measureTime {
+//    val robots = buildList {
+//        add(KeypadRobot())
+//            repeat(numBots) {
+//                add(DpadRobot())
+//            }
+//        }
+//
+//        val pathLength = getShortestPathSize(
+//            robots = robots,
+//            outputToProduce = input.first()
+//        )
+//
+//        "$numBots: $pathLength".println()
+//    }.println()
+//
+//    return -1
+//}
+
+private fun part2(input: List<String>): Long {
+    return input.map { code ->
+        val robots = buildList {
+            add(KeypadRobot())
+            repeat(25) {
+                add(DpadRobot())
+            }
+        }
+
+        code to getShortestPathSize(
+            robots = robots,
+            outputToProduce = code
+        )
+    }.sumOf { (code, path) ->
+        code.filter { it.isDigit() }.toInt() * path
+    }.also {
+        it.println()
+    }
+}
+
+val memory = mutableMapOf<Pair<List<Robot>, String>, String>()
+val memory2 = mutableMapOf<Pair<List<Robot>, String>, Long>()
+
+var hits = 0
 
 private fun getShortestPath(robots: List<Robot>, outputToProduce: String): String {
 //    "====================================".println()
@@ -181,6 +172,11 @@ private fun getShortestPath(robots: List<Robot>, outputToProduce: String): Strin
 //        println("Buttons for me to push: $outputToProduce")
 //        println(" ")
         return outputToProduce
+    }
+
+    memory[robots to outputToProduce]?.let {
+        hits += 1
+        return it
     }
 
     val bot = robots.first()
@@ -243,9 +239,92 @@ private fun getShortestPath(robots: List<Robot>, outputToProduce: String): Strin
     }
 
     return full.joinToString("").also {
+        memory[robots to outputToProduce] = it
 //        "$bot + $outputToProduce = $it".println()
     }
 }
+
+
+private fun getShortestPathSize(robots: List<Robot>, outputToProduce: String): Long {
+//    "====================================".println()
+//    "(robots: $robots, outputToProduce: $outputToProduce)".println()
+
+    if (robots.isEmpty()) {
+        // For example, if I were able ot stand directly at the keypad, this would be the solution
+//        println("Buttons for me to push: $outputToProduce")
+//        println(" ")
+        return outputToProduce.length.toLong()
+    }
+
+    memory2[robots to outputToProduce]?.let {
+        hits += 1
+        return it
+    }
+
+    val bot = robots.first()
+
+    // Turn the goalPath into a series of locations
+    val locationsToVisit = ArrayDeque(bot.pathToLocations(outputToProduce))
+
+    locationsToVisit.addFirst(bot.location)
+
+    val subGoals = locationsToVisit.windowed(2, 1) {(src, dst) ->
+        src to dst
+    }
+
+    val problemsToSolve = subGoals.map { subGoal ->
+        val src = subGoal.first
+        val dst = subGoal.second
+
+        if (src == dst) {
+            emptyList()
+        } else {
+//        println("Go from $src to $dst (${bot.grid[src]} to ${bot.grid[dst]})")
+            val possiblePaths = getAllPaths(bot, src, dst)
+//        possiblePaths.printAsLines()
+//        println("")
+            possiblePaths
+        }
+    }
+
+//    "problems to solve".println()
+//    problemsToSolve.printAsLines()
+//    "".println()
+
+    val full = problemsToSolve.map { subPathOptions ->
+//        "subPathOptions: $subPathOptions".println()
+
+        // We have a list of all paths to consider between some src and dst
+        val movementOptions = if (subPathOptions.isEmpty()) { listOf("A") } else subPathOptions.map { pathAsLocations ->
+            // Translate this to a dpad movement path
+            // Don't forget to push the button
+            pathAsLocations.toDpadSequence() + 'A'
+        }
+
+//        "movement options: ${movementOptions}".println()
+
+        // Now, which of these is going to give us the shortest result?
+        val possiblePaths = movementOptions.map { path ->
+//            "remaining robots ${robots.drop(1)}: $path ".println() //  (robots: $robots, outputToProduce: $outputToProduce)
+            getShortestPathSize(robots.drop(1), path)
+        }
+
+//        "possiblePaths: $possiblePaths".println()
+
+        if (possiblePaths.isEmpty()) {
+            0
+        } else {
+            possiblePaths.minBy {
+                it
+            }
+        }
+    }
+
+    return full.sum().also {
+        memory2[robots to outputToProduce] = it
+    }
+}
+
 
 private fun List<Vector>.toDpadSequence(): String {
     return windowed(2, 1).map { (a, b) ->
