@@ -76,11 +76,45 @@ data class KeypadRobot(override val location: Vector = keypad['A']!!) : Robot {
 }
 
 private fun part1(input: List<String>): Int {
+//    getShortestPath(
+//        listOf(
+//            DpadRobot()
+//        ),
+//        "AAA"
+//    ).println()
+//
+//    TODO()
+//
+//    getShortestPath(
+//        listOf(
+//            DpadRobot()
+//        ),
+//        "v<<A"
+//    ).println()
+//
+//    TODO()
+//
+    getShortestPath(
+        listOf(
+            KeypadRobot(),
+            DpadRobot(),
+            DpadRobot()
+        ),
+        "379A"
+    ).println()
+
+    TODO()
+
     val robots = listOf(
-        KeypadRobot()
+        KeypadRobot(),
+        DpadRobot(),
+        DpadRobot(),
     )
 
     val goalPath = "029A"
+
+    // <A
+    // <v<A>>^A
 
 //    val paths = getAllPaths(robots.first(), Vector(1,2), Vector(2, 0))
 //
@@ -138,9 +172,14 @@ private fun part1(input: List<String>): Int {
     TODO()
 }
 
-private fun getShortestPath(robots: List<KeypadRobot>, outputToProduce: String): String {
+private fun getShortestPath(robots: List<Robot>, outputToProduce: String): String {
+//    "====================================".println()
+//    "(robots: $robots, outputToProduce: $outputToProduce)".println()
+
     if (robots.isEmpty()) {
         // For example, if I were able ot stand directly at the keypad, this would be the solution
+//        println("Buttons for me to push: $outputToProduce")
+//        println(" ")
         return outputToProduce
     }
 
@@ -156,36 +195,56 @@ private fun getShortestPath(robots: List<KeypadRobot>, outputToProduce: String):
     }
 
     val problemsToSolve = subGoals.map { subGoal ->
-        println("")
         val src = subGoal.first
         val dst = subGoal.second
-        println("Go from $src to $dst (${bot.grid[src]} to ${bot.grid[dst]})")
-        val possiblePaths = getAllPaths(bot, subGoal.first, subGoal.second)
-        possiblePaths.printAsLines()
-        println("")
-        possiblePaths
+
+        if (src == dst) {
+            emptyList()
+        } else {
+//        println("Go from $src to $dst (${bot.grid[src]} to ${bot.grid[dst]})")
+            val possiblePaths = getAllPaths(bot, src, dst)
+//        possiblePaths.printAsLines()
+//        println("")
+            possiblePaths
+        }
     }
 
-    problemsToSolve.map { subPathOptions ->
+//    "problems to solve".println()
+//    problemsToSolve.printAsLines()
+//    "".println()
+
+    val full = problemsToSolve.map { subPathOptions ->
+//        "subPathOptions: $subPathOptions".println()
+
         // We have a list of all paths to consider between some src and dst
-        val movementOptions = subPathOptions.map { pathAsLocations ->
+        val movementOptions = if (subPathOptions.isEmpty()) { listOf("A") } else subPathOptions.map { pathAsLocations ->
             // Translate this to a dpad movement path
             // Don't forget to push the button
             pathAsLocations.toDpadSequence() + 'A'
         }
 
+//        "movement options: ${movementOptions}".println()
+
         // Now, which of these is going to give us the shortest result?
-
-        val shortest = movementOptions.map { path ->
+        val possiblePaths = movementOptions.map { path ->
+//            "remaining robots ${robots.drop(1)}: $path ".println() //  (robots: $robots, outputToProduce: $outputToProduce)
             getShortestPath(robots.drop(1), path)
-        }.minBy { it.length }
+        }
 
-        shortest.println()
+//        "possiblePaths: $possiblePaths".println()
 
-        println("")
+        if (possiblePaths.isEmpty()) {
+            ""
+        } else {
+            possiblePaths.minBy {
+                it.length
+            }
+        }
     }
 
-    TODO()
+    return full.joinToString("").also {
+//        "$bot + $outputToProduce = $it".println()
+    }
 }
 
 private fun List<Vector>.toDpadSequence(): String {
@@ -200,9 +259,14 @@ private fun getAllPaths(
     src: Vector,
     dst: Vector
 ): List<List<Vector>> {
+//    "###################".println()
+//    "getAllPaths: $bot $src $dst".println()
+
     val allHeadingSequences = getHeadingSequences(src, dst).toList() //.also { .printAsLines() }
 
     val permutations = allHeadingSequences.permutations().toList()
+
+//    "permutations: $permutations".println()
 
     val movementSequences = permutations.map { headings ->
         var location = src
@@ -218,12 +282,19 @@ private fun getAllPaths(
         }
     }
 
+//    "movement sequences: $movementSequences".println()
+
     val legalPaths = movementSequences.filter { locations ->
         locations.all {
             val isLegal = bot.isLegalLocation(it)
+//            if (!isLegal) {
+//                "Illegal path: $locations".println()
+//            }
             isLegal
         }
     }
+
+//    "Legal paths: $legalPaths".println()
 
     return legalPaths
 }
